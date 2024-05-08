@@ -5,7 +5,9 @@
 #include "SpringForce.h"
 #include "RodConstraint.h"
 #include "CircularWireConstraint.h"
+#include "GravityForce.h"
 #include "imageio.h"
+#include "Solver.h"
 
 #include <vector>
 #include <stdlib.h>
@@ -15,7 +17,8 @@
 /* macros */
 
 /* external definitions (from solver) */
-extern void simulation_step( std::vector<Particle*> pVector, float dt );
+
+IntegrationFunctionHook simulation_step = nullptr;
 
 /* global variables */
 
@@ -36,9 +39,34 @@ static int mouse_shiftclick[3];
 static int omx, omy, mx, my;
 static int hmx, hmy;
 
+static std::vector<Force*> fVector;
 static SpringForce * delete_this_dummy_spring = NULL;
 static RodConstraint * delete_this_dummy_rod = NULL;
 static CircularWireConstraint * delete_this_dummy_wire = NULL;
+
+/*
+----------------------------------------------------------------------
+hook function -- plugable integration scheme
+----------------------------------------------------------------------
+*/
+
+void setIntegrationHook(IntegrationType t) {
+	switch (t)
+	{
+	case Euler:
+		simulation_step = Euler_step;
+		break;
+	case Midpoint:
+		simulation_step = Midpoint_step;
+		break;
+	case RungeKutta:
+		simulation_step = Runge_Kutta_4;
+		break;
+	default:
+		simulation_step = Midpoint_step; //default approach
+		break;
+	}
+}
 
 
 /*
@@ -50,6 +78,7 @@ free/clear/allocate simulation data
 static void free_data ( void )
 {
 	pVector.clear();
+	fVector.clear();
 	if (delete_this_dummy_rod) {
 		delete delete_this_dummy_rod;
 		delete_this_dummy_rod = NULL;
@@ -79,6 +108,9 @@ static void init_system(void)
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
+	// Set integration scheme.
+	setIntegrationHook(Euler);
+
 	// Create three particles, attach them to each other, then add a
 	// circular wire constraint to the first.
 
@@ -88,7 +120,8 @@ static void init_system(void)
 	
 	// You shoud replace these with a vector generalized forces and one of
 	// constraints...
-	delete_this_dummy_spring = new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0);
+	fVector.push_back(new GravityForce(pVector));
+	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0));
 	delete_this_dummy_rod = new RodConstraint(pVector[1], pVector[2], dist);
 	delete_this_dummy_wire = new CircularWireConstraint(pVector[0], center, dist);
 }
@@ -148,8 +181,10 @@ static void draw_particles ( void )
 static void draw_forces ( void )
 {
 	// change this to iteration over full set
-	if (delete_this_dummy_spring)
-		delete_this_dummy_spring->draw();
+	for (auto force : fVector) {
+		force->draw();
+	}
+		
 }
 
 static void draw_constraints ( void )
@@ -205,6 +240,7 @@ static void remap_GUI()
 	{
 		pVector[ii]->m_Position[0] = pVector[ii]->m_ConstructPos[0];
 		pVector[ii]->m_Position[1] = pVector[ii]->m_ConstructPos[1];
+		pVector[ii]->clearForce();
 	}
 }
 
@@ -268,7 +304,7 @@ static void reshape_func ( int width, int height )
 
 static void idle_func ( void )
 {
-	if ( dsim ) simulation_step( pVector, dt );
+	if ( dsim ) simulation_step( pVector, fVector, dt );
 	else        {get_from_UI();remap_GUI();}
 
 	glutSetWindow ( win_id );
