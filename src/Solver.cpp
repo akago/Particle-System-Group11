@@ -1,5 +1,5 @@
 #include "Solver.h"
-
+#include "linearSolver.h"
 
 void ParticleDeriv(std::vector<Particle*> pVector, double* dst) {
 	for (auto p : pVector) {
@@ -29,8 +29,8 @@ void SetSystemState(std::vector<Particle*> pVector, double* src) {
 }
 
 void Euler_step(std::vector<Particle*> pVector, std::vector<Force*> fVector, float dt) {
-	double* temp1 = (double*)malloc(pVector.size() * 4 * sizeof(double));
-	double* temp2 = (double*)malloc(pVector.size() * 4 * sizeof(double));
+	double* derivative = (double*)malloc(pVector.size() * 4 * sizeof(double));
+	double* x0 = (double*)malloc(pVector.size() * 4 * sizeof(double));
 	int ii, size = pVector.size();
 
 	// Clear forces
@@ -41,20 +41,49 @@ void Euler_step(std::vector<Particle*> pVector, std::vector<Force*> fVector, flo
 	for (auto force : fVector) {
 		force->applyForce();
 	}
-	// Integration step
-	GetSystemState(pVector, temp1);
-	ParticleDeriv(pVector, temp1);
-	vecTimesScalar(pVector.size() * 4, temp1, dt);
-	GetSystemState(pVector, temp2);
-	vecAddEqual(pVector.size() * 4, temp2, temp1);
-	SetSystemState(pVector, temp2);
 
-	free(temp1);
-	free(temp2);
+	// Integration step
+	ParticleDeriv(pVector, derivative);
+	vecTimesScalar(pVector.size() * 4, derivative, dt);
+	GetSystemState(pVector, x0);
+	vecAddEqual(pVector.size() * 4, derivative, x0);
+	SetSystemState(pVector, derivative);
+	
+	/*pVector[1]->m_Position[0] = pVector[1]->m_ConstructPos[0];
+	pVector[1]->m_Position[1] = pVector[1]->m_ConstructPos[1];*/
+	free(derivative);
+	free(x0);
 }
 
 void Midpoint_step(std::vector<Particle*> pVector, std::vector<Force*> fVector, float dt) {
+	double* derivative = (double*)malloc(pVector.size() * 4 * sizeof(double));
+	double* x0 = (double*)malloc(pVector.size() * 4 * sizeof(double));
+	int ii, size = pVector.size();
 
+	// Clear forces
+	for (ii = 0; ii < size; ii++) {
+		pVector[ii]->clearForce();
+	}
+	// Compute forces
+	for (auto force : fVector) {
+		force->applyForce();
+	}
+
+	// Integration step
+	// first derivative
+	GetSystemState(pVector, x0);
+	ParticleDeriv(pVector, derivative);
+	vecTimesScalar(pVector.size() * 4, derivative, dt / 2);
+	vecAddEqual(pVector.size() * 4, derivative, x0);
+	SetSystemState(pVector, derivative);
+	// second derivative
+	ParticleDeriv(pVector, derivative);
+	vecTimesScalar(pVector.size() * 4, derivative, dt);
+	vecAddEqual(pVector.size() * 4, derivative, x0);
+	SetSystemState(pVector, derivative);
+
+	free(derivative);
+	free(x0);
 }
 
 void Runge_Kutta_4(std::vector<Particle*> pVector, std::vector<Force*> fVector, float dt) {
