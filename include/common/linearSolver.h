@@ -39,6 +39,7 @@ double ConjGrad(int n, implicitMatrix *A, double x[], double b[],
 		int    *steps);
 
 // Some vector helper functions
+void vecAddEqualWithFactor(int n, double r[], double v[], double factor);
 void vecAddEqual(int n, double r[], double v[]);
 void vecDiffEqual(int n, double r[], double v[]);
 void vecAssign(int n, double v1[], double v2[]);

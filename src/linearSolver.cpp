@@ -2,6 +2,12 @@
 
 // vector helper functions
 
+void vecAddEqualWithFactor(int n, double r[], double v[], double factor)
+{
+  for (int i = 0; i < n; i++)
+    r[i] = r[i] + factor * v[i];
+}
+
 void vecAddEqual(int n, double r[], double v[])
 {
   for (int i = 0; i < n; i++)

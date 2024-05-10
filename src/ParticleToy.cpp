@@ -2,10 +2,10 @@
 //
 
 #include "Particle.h"
-#include "SpringForce.h"
+// #include "SpringForce.h"
 #include "RodConstraint.h"
 #include "CircularWireConstraint.h"
-#include "GravityForce.h"
+// #include "GravityForce.h"
 #include "imageio.h"
 #include "Solver.h"
 
@@ -109,7 +109,7 @@ static void init_system(void)
 	const Vec2f offset(dist, 0.0);
 
 	// Set integration scheme.
-	setIntegrationHook(Euler);
+	setIntegrationHook(RungeKutta);
 
 	// Create three particles, attach them to each other, then add a
 	// circular wire constraint to the first.
@@ -121,7 +121,7 @@ static void init_system(void)
 	// You shoud replace these with a vector generalized forces and one of
 	// constraints...
 	fVector.push_back(new GravityForce(pVector));
-	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0));
+	fVector.push_back(new SpringForce(pVector[0], pVector[1], 0.5*dist, 1.0, 1.0));
 	delete_this_dummy_rod = new RodConstraint(pVector[1], pVector[2], dist);
 	delete_this_dummy_wire = new CircularWireConstraint(pVector[0], center, dist);
 }
