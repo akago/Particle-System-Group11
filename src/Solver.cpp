@@ -96,18 +96,34 @@ void Euler_step(std::vector<Particle*> pVector, std::vector<Force*> fVector, flo
 }
 
 void Midpoint_step(std::vector<Particle*> pVector, std::vector<Force*> fVector, float dt) {
-	double* state = (double*)malloc(pVector.size() * 4 * sizeof(double));
-	GetSystemState(pVector, state);
+	double* derivative = (double*)malloc(pVector.size() * 4 * sizeof(double));
+	double* x0 = (double*)malloc(pVector.size() * 4 * sizeof(double));
+	int ii, size = pVector.size();
 
-	double* k1 = ComputeK1(pVector, fVector, dt);
-	double* k2 = ComputeK2(pVector, fVector, dt, k1);
+	// Clear forces
+	for (ii = 0; ii < size; ii++) {
+		pVector[ii]->clearForce();
+	}
+	// Compute forces
+	for (auto force : fVector) {
+		force->applyForce();
+	}
 
-	vecAddEqual(pVector.size() * 4, state, k2);
-	SetSystemState(pVector, state);
+	// Integration step
+	// first derivative
+	GetSystemState(pVector, x0);
+	ParticleDeriv(pVector, derivative);
+	vecTimesScalar(pVector.size() * 4, derivative, dt / 2);
+	vecAddEqual(pVector.size() * 4, derivative, x0);
+	SetSystemState(pVector, derivative);
+	// second derivative
+	ParticleDeriv(pVector, derivative);
+	vecTimesScalar(pVector.size() * 4, derivative, dt);
+	vecAddEqual(pVector.size() * 4, derivative, x0);
+	SetSystemState(pVector, derivative);
 
-	free(state);
-	free(k1);
-	free(k2);
+	free(derivative);
+	free(x0);
 }
 
 void Runge_Kutta_4(std::vector<Particle*> pVector, std::vector<Force*> fVector, float dt) {
