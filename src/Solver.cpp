@@ -83,16 +83,30 @@ double* ComputeK4(std::vector<Particle*> pVector, std::vector<Force*> fVector, d
 }
 
 void Euler_step(std::vector<Particle*> pVector, std::vector<Force*> fVector, float dt) {
-	double* state = (double*)malloc(pVector.size() * 4 * sizeof(double));
-	GetSystemState(pVector, state);
+	double* derivative = (double*)malloc(pVector.size() * 4 * sizeof(double));
+	double* x0 = (double*)malloc(pVector.size() * 4 * sizeof(double));
+	int ii, size = pVector.size();
 
-	double* k1 = ComputeK1(pVector, fVector, dt);
+	// Clear forces
+	for (ii = 0; ii < size; ii++) {
+		pVector[ii]->clearForce();
+	}
+	// Compute forces
+	for (auto force : fVector) {
+		force->applyForce();
+	}
 
-	vecAddEqual(pVector.size() * 4, state, k1);
-	SetSystemState(pVector, state);
+	// Integration step
+	ParticleDeriv(pVector, derivative);
+	vecTimesScalar(pVector.size() * 4, derivative, dt);
+	GetSystemState(pVector, x0);
+	vecAddEqual(pVector.size() * 4, derivative, x0);
+	SetSystemState(pVector, derivative);
 
-	free(state);
-	free(k1);
+	/*pVector[1]->m_Position[0] = pVector[1]->m_ConstructPos[0];
+	pVector[1]->m_Position[1] = pVector[1]->m_ConstructPos[1];*/
+	free(derivative);
+	free(x0);
 }
 
 void Midpoint_step(std::vector<Particle*> pVector, std::vector<Force*> fVector, float dt) {
