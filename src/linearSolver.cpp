@@ -121,4 +121,9 @@ double ConjGrad(int n, implicitMatrix *A, double x[], double b[],
   return(rSqrLen);
 }
 
+void vecAddEqualWithFactor(int n, double r[], double v[], double factor)
+{
+	for (int i = 0; i < n; i++)
+		r[i] = r[i] + factor * v[i];
+}
 

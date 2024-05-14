@@ -28,6 +28,11 @@ void SetSystemState(std::vector<Particle*> pVector, double* src) {
 	}
 }
 
+void ConstraintForceEval(std::vector<Particle*> pVector, double* dst) {
+
+}
+
+
 void Euler_step(std::vector<Particle*> pVector, std::vector<Force*> fVector, float dt) {
 	double* derivative = (double*)malloc(pVector.size() * 4 * sizeof(double));
 	double* x0 = (double*)malloc(pVector.size() * 4 * sizeof(double));

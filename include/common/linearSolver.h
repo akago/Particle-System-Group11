@@ -45,5 +45,6 @@ void vecAssign(int n, double v1[], double v2[]);
 void vecTimesScalar(int n, double v[], double s);
 double vecDot(int n, double v1[], double v2[]);
 double vecSqrLen(int n, double v[]);
+void vecAddEqualWithFactor(int n, double r[], double v[], double factor);
 
 #endif
