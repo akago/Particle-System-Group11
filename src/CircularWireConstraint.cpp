@@ -1,4 +1,4 @@
-#include "CircularWireConstraint.h"
+#include "Constraint.h"
 #include <GL/glut.h>
 
 #define PI 3.1415926535897932384626433832795
@@ -18,15 +18,28 @@ static void draw_circle(const Vec2f & vect, float radius)
 CircularWireConstraint::CircularWireConstraint(Particle *p, const Vec2f & center, const double radius) :
 	m_p(p), m_center(center), m_radius(radius) {}
 
-void CircularWireConstraint::getJacobian() {
-	
-	m_p->m_Position[0]
-}
-
 double CircularWireConstraint::eval() {
 	// C(x,y) = (x-xc)^2 + (y-yc)^2 - r^2
-	return pow(m_p->m_Position[0] - center[0], 2) + pow(m_p->m_Position[1] - center[1], 2) - pow(m_radius, 2);
+	return pow(m_p->m_Position[0] - m_center[0], 2) + pow(m_p->m_Position[1] - m_center[1], 2) - pow(m_radius, 2);
 }
+
+double CircularWireConstraint::getTimeDeriv() {
+	// C' = dC/dt = 2(x-xc)*vx + 2(y-yc)*vy
+	return 2 * (m_p->m_Position[0] - m_center[0]) * m_p->m_Velocity[0] + 2 * (m_p->m_Position[1] - m_center[1]) * m_p->m_Velocity[1];
+}
+
+void CircularWireConstraint::getJacob(double* dst) {
+	// compute (dC/dx, dC/dy)
+	*(dst++) = 2 * (m_p->m_Position[0] - m_center[0]);
+	*(dst++) = 2 * (m_p->m_Position[1] - m_center[1]);
+}
+
+void CircularWireConstraint::getJacobDeriv(double* dst) {
+	// J' = dC'/dq = (2vx, 2vy)
+	*(dst++) = 2 * m_p->m_Velocity[0];
+	*(dst++) = 2 * m_p->m_Velocity[1];
+}
+
 
 void CircularWireConstraint::draw()
 {

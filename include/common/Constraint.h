@@ -6,9 +6,9 @@
 class Constraint {
 public:
 	virtual double eval() = 0;
-	virtual void getJacobian() = 0;
-	virtual void getTimeDeriv() = 0;
-	virtual void get
+	virtual double getTimeDeriv() = 0;
+	virtual void getJacob() = 0;
+	virtual void getJacobDeriv() = 0;
 	virtual void draw() = 0;
 };
 
@@ -20,8 +20,9 @@ class CircularWireConstraint : public Constraint {
  public:
   CircularWireConstraint(Particle *p, const Vec2f & center, const double radius);
   double eval() override;
-  void getJacobian() override;
+  void getJacob(double* dst) override;
   void getTimeDeriv() override;
+  void getJacobDeriv(double* dst) override;
   void draw() override;
 
  private:
@@ -37,7 +38,7 @@ class CircularWireConstraint : public Constraint {
 class RodConstraint : public Constraint {
 public:
 	RodConstraint(Particle *p1, Particle * p2, double dist);
-	void getJacobian() override;
+	void getJacob(double* dst) override;
 	void draw();
 
 private:
@@ -52,7 +53,7 @@ private:
 */
 class RodConstraintv2 : public RodConstraint {
 public:
-	void getJacobian() override;
+	void getJacob(double* dst) override;
 };
 
 struct SparseBlock {
