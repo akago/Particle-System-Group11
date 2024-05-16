@@ -9,6 +9,8 @@
 #include "imageio.h"
 #include "Solver.h"
 
+#include <iostream>
+#include <limits>
 #include <vector>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,6 +46,9 @@ static SpringForce * delete_this_dummy_spring = NULL;
 static RodConstraint * delete_this_dummy_rod = NULL;
 static CircularWireConstraint * delete_this_dummy_wire = NULL;
 
+static Particle *mouseParticle;
+static SpringForce *mouseSpringForce;
+
 /*
 ----------------------------------------------------------------------
 hook function -- plugable integration scheme
@@ -53,18 +58,18 @@ hook function -- plugable integration scheme
 void setIntegrationHook(IntegrationType t) {
 	switch (t)
 	{
-	case Euler:
-		simulation_step = Euler_step;
-		break;
-	case Midpoint:
-		simulation_step = Midpoint_step;
-		break;
-	case RungeKutta:
-		simulation_step = Runge_Kutta_4;
-		break;
-	default:
-		simulation_step = Midpoint_step; //default approach
-		break;
+		case Euler:
+			simulation_step = Euler_step;
+			break;
+		case Midpoint:
+			simulation_step = Midpoint_step;
+			break;
+		case RungeKutta:
+			simulation_step = Runge_Kutta_4;
+			break;
+		default:
+			simulation_step = Midpoint_step; //default approach
+			break;
 	}
 }
 
@@ -79,6 +84,8 @@ static void free_data ( void )
 {
 	pVector.clear();
 	fVector.clear();
+	delete mouseParticle;
+	delete mouseSpringForce;
 	if (delete_this_dummy_rod) {
 		delete delete_this_dummy_rod;
 		delete_this_dummy_rod = NULL;
@@ -124,6 +131,8 @@ static void init_system(void)
 	fVector.push_back(new SpringForce(pVector[0], pVector[1], 0.5*dist, 1.0, 1.0));
 	delete_this_dummy_rod = new RodConstraint(pVector[1], pVector[2], dist);
 	delete_this_dummy_wire = new CircularWireConstraint(pVector[0], center, dist);
+
+	mouseParticle = new Particle(center);
 }
 
 /*
@@ -176,6 +185,7 @@ static void draw_particles ( void )
 	{
 		pVector[ii]->draw();
 	}
+	mouseParticle->draw();
 }
 
 static void draw_forces ( void )
@@ -221,12 +231,14 @@ static void get_from_UI ()
 	}
 
 	if ( mouse_down[2] ) {
+
 	}
 
 	hi = (int)((       hmx /(float)win_x)*N);
 	hj = (int)(((win_y-hmy)/(float)win_y)*N);
 
 	if( mouse_release[0] ) {
+
 	}
 
 	omx = mx;
@@ -304,8 +316,37 @@ static void reshape_func ( int width, int height )
 
 static void idle_func ( void )
 {
-	if ( dsim ) simulation_step( pVector, fVector, dt );
-	else        {get_from_UI();remap_GUI();}
+	if (dsim) {
+		if ( mouse_down[0] ) {
+			mouseParticle->m_Position[0] = (2.0*mx/win_x)-1;
+			mouseParticle->m_Position[1] = -(2.0*my/win_y)+1;
+
+			Particle *closestParticle;
+			float closestDistanceSquared = std::numeric_limits<float>::max();
+
+			for(auto p : pVector) {
+				float dx = (mouseParticle->m_Position[0] - p->m_Position[0]);
+				float dy = (mouseParticle->m_Position[1] - p->m_Position[1]);
+				float distanceSquared = dx*dx + dy*dy;
+				if(distanceSquared < closestDistanceSquared) {
+					closestParticle = p;
+					closestDistanceSquared = distanceSquared;
+				}
+			}
+			mouseSpringForce = new SpringForce(mouseParticle, closestParticle, 0, 0.01, 0.01);
+
+			fVector.push_back(mouseSpringForce);
+			simulation_step( pVector, fVector, dt );
+			fVector.pop_back();
+			delete mouseSpringForce;
+		} else {
+			simulation_step( pVector, fVector, dt );
+		}
+	}
+	else {
+		get_from_UI();
+		remap_GUI();
+	}
 
 	glutSetWindow ( win_id );
 	glutPostRedisplay ();
