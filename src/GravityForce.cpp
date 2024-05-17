@@ -1,7 +1,7 @@
 #include "Force.h"
 
 GravityForce::GravityForce(std::vector<Particle*> pVector) :
-	m_pVector(pVector), m_gconstant(0.000001) {}
+	m_pVector(pVector), m_gconstant(0.001) {}
 
 void GravityForce::applyForce() {
 	for (auto p : m_pVector) {

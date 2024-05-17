@@ -2,12 +2,11 @@
 //
 
 #include "Particle.h"
-// #include "SpringForce.h"
-#include "RodConstraint.h"
-#include "CircularWireConstraint.h"
-// #include "GravityForce.h"
+#include "Force.h"
 #include "imageio.h"
 #include "Solver.h"
+#include "Constraint.h"
+#include "LinearSolver.h"
 
 #include <iostream>
 #include <limits>
@@ -42,16 +41,14 @@ static int omx, omy, mx, my;
 static int hmx, hmy;
 
 static std::vector<Force*> fVector;
-static SpringForce * delete_this_dummy_spring = NULL;
-static RodConstraint * delete_this_dummy_rod = NULL;
-static CircularWireConstraint * delete_this_dummy_wire = NULL;
-
-static Particle *mouseParticle;
-static SpringForce *mouseSpringForce;
+static std::vector<Constraint*> cVector;
 
 /*
 ----------------------------------------------------------------------
-hook function -- plugable integration scheme
+Set hook function -- plugable integration scheme
+Euler: Euler step
+Midpoint: Midpoint step
+RungeKutta: RungeKutta-4 step
 ----------------------------------------------------------------------
 */
 
@@ -73,7 +70,6 @@ void setIntegrationHook(IntegrationType t) {
 	}
 }
 
-
 /*
 ----------------------------------------------------------------------
 free/clear/allocate simulation data
@@ -84,20 +80,7 @@ static void free_data ( void )
 {
 	pVector.clear();
 	fVector.clear();
-	delete mouseParticle;
-	delete mouseSpringForce;
-	if (delete_this_dummy_rod) {
-		delete delete_this_dummy_rod;
-		delete_this_dummy_rod = NULL;
-	}
-	if (delete_this_dummy_spring) {
-		delete delete_this_dummy_spring;
-		delete_this_dummy_spring = NULL;
-	}
-	if (delete_this_dummy_wire) {
-		delete delete_this_dummy_wire;
-		delete_this_dummy_wire = NULL;
-	}
+	cVector.clear();
 }
 
 static void clear_data ( void )
@@ -125,14 +108,18 @@ static void init_system(void)
 	pVector.push_back(new Particle(center + offset + offset));
 	pVector.push_back(new Particle(center + offset + offset + offset));
 	
-	// You shoud replace these with a vector generalized forces and one of
-	// constraints...
 	fVector.push_back(new GravityForce(pVector));
-	fVector.push_back(new SpringForce(pVector[0], pVector[1], 0.5*dist, 1.0, 1.0));
-	delete_this_dummy_rod = new RodConstraint(pVector[1], pVector[2], dist);
-	delete_this_dummy_wire = new CircularWireConstraint(pVector[0], center, dist);
+	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.005, 0.001));
 
-	mouseParticle = new Particle(center);
+	// Create Global Constraint Jacobian Matrix
+	Constraint::GlobalJ = new GlobalMatrix(0,pVector.size()*2);
+	Constraint::GlobalJdot = new GlobalMatrix(0, pVector.size() * 2);
+	Constraint::global_cons_num = 0;
+	Constraint::kd = 0.001;
+	Constraint::ks = 0.002;
+
+	//cVector.push_back(new RodConstraint(pVector[1], pVector[2], dist));
+	cVector.push_back(new CircularWireConstraint(0, pVector[0], center, dist));
 }
 
 /*
@@ -185,7 +172,6 @@ static void draw_particles ( void )
 	{
 		pVector[ii]->draw();
 	}
-	mouseParticle->draw();
 }
 
 static void draw_forces ( void )
@@ -200,10 +186,9 @@ static void draw_forces ( void )
 static void draw_constraints ( void )
 {
 	// change this to iteration over full set
-	if (delete_this_dummy_rod)
-		delete_this_dummy_rod->draw();
-	if (delete_this_dummy_wire)
-		delete_this_dummy_wire->draw();
+	for (auto constraint : cVector) {
+		constraint->draw();
+	}
 }
 
 /*
@@ -231,7 +216,6 @@ static void get_from_UI ()
 	}
 
 	if ( mouse_down[2] ) {
-
 	}
 
 	hi = (int)((       hmx /(float)win_x)*N);
@@ -250,9 +234,11 @@ static void remap_GUI()
 	int ii, size = pVector.size();
 	for(ii=0; ii<size; ii++)
 	{
-		pVector[ii]->m_Position[0] = pVector[ii]->m_ConstructPos[0];
-		pVector[ii]->m_Position[1] = pVector[ii]->m_ConstructPos[1];
-		pVector[ii]->clearForce();
+		//pVector[ii]->m_Position[0] = pVector[ii]->m_ConstructPos[0];
+		//pVector[ii]->m_Position[1] = pVector[ii]->m_ConstructPos[1];
+		//pVector[ii]->clearForce();
+
+		pVector[ii]->reset();
 	}
 }
 
@@ -316,37 +302,8 @@ static void reshape_func ( int width, int height )
 
 static void idle_func ( void )
 {
-	if (dsim) {
-		if ( mouse_down[0] ) {
-			mouseParticle->m_Position[0] = (2.0*mx/win_x)-1;
-			mouseParticle->m_Position[1] = -(2.0*my/win_y)+1;
-
-			Particle *closestParticle;
-			float closestDistanceSquared = std::numeric_limits<float>::max();
-
-			for(auto p : pVector) {
-				float dx = (mouseParticle->m_Position[0] - p->m_Position[0]);
-				float dy = (mouseParticle->m_Position[1] - p->m_Position[1]);
-				float distanceSquared = dx*dx + dy*dy;
-				if(distanceSquared < closestDistanceSquared) {
-					closestParticle = p;
-					closestDistanceSquared = distanceSquared;
-				}
-			}
-			mouseSpringForce = new SpringForce(mouseParticle, closestParticle, 0, 0.01, 0.01);
-
-			fVector.push_back(mouseSpringForce);
-			simulation_step( pVector, fVector, dt );
-			fVector.pop_back();
-			delete mouseSpringForce;
-		} else {
-			simulation_step( pVector, fVector, dt );
-		}
-	}
-	else {
-		get_from_UI();
-		remap_GUI();
-	}
+	if ( dsim ) simulation_step( pVector, fVector, cVector, dt);
+	else        {get_from_UI();remap_GUI();}
 
 	glutSetWindow ( win_id );
 	glutPostRedisplay ();

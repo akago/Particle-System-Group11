@@ -1,8 +1,10 @@
-#include "RodConstraint.h"
+#include "Constraint.h"
 #include <GL/glut.h>
+RodConstraint::RodConstraint(int p1_idx, int p2_idx, Particle *p1, Particle * p2, double dist) :
+ m_p1_idx(p1_idx), m_p2_idx(p2_idx), m_p1(p1), m_p2(p2), m_dist(dist), m_c_idx(global_cons_num++) 
+{
 
-RodConstraint::RodConstraint(Particle *p1, Particle * p2, double dist) :
-  m_p1(p1), m_p2(p2), m_dist(dist) {}
+}
 
 void RodConstraint::draw()
 {
