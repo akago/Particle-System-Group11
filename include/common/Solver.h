@@ -3,6 +3,7 @@
 #include "Particle.h"
 #include "Force.h"
 #include "Constraint.h"
+#include "linearSolver.h"
 
 #include <vector>
 
@@ -26,4 +27,4 @@ void Euler_step(std::vector<Particle*> pVector, std::vector<Force*> fVector, std
 void Midpoint_step(std::vector<Particle*> pVector, std::vector<Force*> fVector, std::vector<Constraint*> cVector, float dt);
 void Runge_Kutta_4(std::vector<Particle*> pVector, std::vector<Force*> fVector, std::vector<Constraint*> cVector, float dt);
 
-void ConstraintForceEval(std::vector<Particle*> pVector, std::vector<Constraint*> cVector, double* dst);
+void ApplyConstraintForce(std::vector<Particle*> pVector, std::vector<Constraint*> cVector);

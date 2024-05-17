@@ -1,5 +1,5 @@
 #include "linearSolver.h"
-
+#include "Constraint.h"
 // vector helper functions
 
 void vecAddEqual(int n, double r[], double v[])
@@ -24,6 +24,11 @@ void vecTimesScalar(int n, double v[], double s)
 {
   for (int i = 0; i < n; i++)
     v[i] *= s;
+}
+
+void vecElewiseProd(int n, double r[], double v[]) {
+	for (int i = 0; i < n; i++)
+		r[i] = r[i] * v[i];
 }
 
 double vecDot(int n, double v1[], double v2[])
@@ -54,7 +59,9 @@ double ConjGrad(int n, implicitMatrix *A, double x[], double b[],
   vecAssign(n, x, b);
 
   vecAssign(n, r, b);
+
   A->matVecMult(x, temp);
+  
   vecDiffEqual(n, r, temp);
 
   rSqrLen = vecSqrLen(n, r);
@@ -121,9 +128,151 @@ double ConjGrad(int n, implicitMatrix *A, double x[], double b[],
   return(rSqrLen);
 }
 
+double Constraint_ConjGrad(int n, int m, GlobalMatrix *A, double x[], double b[], double W[],
+	double epsilon,	// how low should we go?
+	int    steps)
+{
+	int		i, iMax;
+	double	alpha, beta, rSqrLen, rSqrLenOld, u;
+
+	double *r = (double *)malloc(sizeof(double) * n);
+	double *d = (double *)malloc(sizeof(double) * n);
+	double *t = (double *)malloc(sizeof(double) * n);
+	double *temp = (double *)malloc(sizeof(double) * n);
+	// dimension of W: m
+	double *temp1 = (double *)malloc(sizeof(double) * m);
+
+	vecAssign(n, x, b);
+
+	vecAssign(n, r, b);
+
+	printf("¡¾Constraint_ConjGrad¡¿ n is %d\n", n);
+
+	A->matTransVecMult(x, temp1); 
+	vecElewiseProd(m, temp1, W);
+	A->matVecMult(temp1, temp);
+
+	vecDiffEqual(n, r, temp);
+
+	rSqrLen = vecSqrLen(n, r);
+
+	vecAssign(n, d, r);
+
+	i = 0;
+	if (steps)
+		iMax = steps;
+	else
+		iMax = MAX_STEPS;
+	printf("¡¾Constraint_ConjGrad¡¿========starting iteration===========\n");
+	if (rSqrLen > epsilon)
+		while (i < iMax) {
+			i++;
+
+			//A->matVecMult(d, t);
+			A->matTransVecMult(d, temp1);
+			vecElewiseProd(m, temp1, W);
+			A->matVecMult(temp1, t);
+
+			u = vecDot(n, d, t);
+
+			if (u == 0) {
+				printf("(SolveConjGrad) d'Ad = 0\n");
+				break;
+			}
+
+			// How far should we go?
+			alpha = rSqrLen / u;
+
+			// Take a step along direction d
+			vecAssign(n, temp, d);
+			vecTimesScalar(n, temp, alpha);
+			vecAddEqual(n, x, temp);
+
+			if (i & 0x3F) {
+				vecAssign(n, temp, t);
+				vecTimesScalar(n, temp, alpha);
+				vecDiffEqual(n, r, temp);
+			}
+			else {
+				// For stability, correct r every 64th iteration
+				vecAssign(n, r, b);
+				//A->matVecMult(x, temp);
+				A->matTransVecMult(x, temp1);
+				vecElewiseProd(m, temp1, W);
+				A->matVecMult(temp1, temp);
+				vecDiffEqual(n, r, temp);
+			}
+
+			rSqrLenOld = rSqrLen;
+			rSqrLen = vecSqrLen(n, r);
+
+			// Converged! Let's get out of here
+			if (rSqrLen <= epsilon)
+				break;
+
+			// Change direction: d = r + beta * d
+			beta = rSqrLen / rSqrLenOld;
+			vecTimesScalar(n, d, beta);
+			vecAddEqual(n, d, r);
+		}
+	// free memory
+
+	free(r);
+	free(d);
+	free(t);
+	free(temp);
+	free(temp1);
+	//*steps = i;
+	return(rSqrLen);
+}
+
 void vecAddEqualWithFactor(int n, double r[], double v[], double factor)
 {
 	for (int i = 0; i < n; i++)
 		r[i] = r[i] + factor * v[i];
 }
 
+
+GlobalMatrix::GlobalMatrix() :
+	m_row(0), m_col(0){}
+
+GlobalMatrix::GlobalMatrix(int row_num, int col_num) :
+	m_row(row_num), m_col(col_num) {}
+
+void GlobalMatrix::addEmptyBlock(int i, int j) {
+	sparse_mat.push_back(SparseBlock(i, j, std::vector<double>(2, 0.0)));
+	updateRownum();
+}
+
+void GlobalMatrix::fillBlockat(int i, int j, std::vector<double> values) {
+	for (int ii = 0; ii < sparse_mat.size(); ii++) {
+		if (sparse_mat[ii].i == i && sparse_mat[ii].j == j) {
+			sparse_mat[ii].values = values;
+		}
+	}
+}
+
+void GlobalMatrix::updateRownum() {
+	m_row = Constraint::global_cons_num;
+}
+
+void GlobalMatrix::matVecMult(double x[], double r[]) {
+	for (int ii = 0; ii < m_row; ii++) {
+		r[ii] = 0.0;
+	}
+	for (auto block : sparse_mat) {
+		for (int ii = 0; ii < block.jlength; ii++) {
+			r[block.i] += block.values[ii] * x[block.jlength * block.j + ii];
+		}
+	}
+}
+
+void GlobalMatrix::matTransVecMult(double x[], double r[]) {
+	for (int ii = 0; ii < m_col; ii++) {
+		r[ii] = 0.0;
+	}
+	for (auto block : sparse_mat) {
+		r[block.jlength * block.j] += block.values[0] * x[block.i];
+		r[block.jlength * block.j + 1] +=  block.values[1] * x[block.i];
+	}
+}

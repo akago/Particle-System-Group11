@@ -6,6 +6,7 @@
 #include "imageio.h"
 #include "Solver.h"
 #include "Constraint.h"
+#include "LinearSolver.h"
 
 #include <vector>
 #include <stdlib.h>
@@ -109,8 +110,15 @@ static void init_system(void)
 	fVector.push_back(new GravityForce(pVector));
 	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.005, 0.001));
 
-	cVector.push_back(new RodConstraint(pVector[1], pVector[2], dist));
-	cVector.push_back(new CircularWireConstraint(pVector[0], center, dist););
+	// Create Global Constraint Jacobian Matrix
+	Constraint::GlobalJ = new GlobalMatrix(0,pVector.size()*2);
+	Constraint::GlobalJdot = new GlobalMatrix(0, pVector.size() * 2);
+	Constraint::global_cons_num = 0;
+	Constraint::kd = 0.0001;
+	Constraint::ks = 0.0002;
+
+	//cVector.push_back(new RodConstraint(pVector[1], pVector[2], dist));
+	cVector.push_back(new CircularWireConstraint(0, pVector[0], center, dist));
 }
 
 /*
@@ -293,7 +301,7 @@ static void reshape_func ( int width, int height )
 
 static void idle_func ( void )
 {
-	if ( dsim ) simulation_step( pVector, fVector, cVector, dt );
+	if ( dsim ) simulation_step( pVector, fVector, cVector, dt);
 	else        {get_from_UI();remap_GUI();}
 
 	glutSetWindow ( win_id );
