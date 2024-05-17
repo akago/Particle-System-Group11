@@ -68,7 +68,6 @@ void setIntegrationHook(IntegrationType t) {
 	}
 }
 
-
 /*
 ----------------------------------------------------------------------
 free/clear/allocate simulation data
@@ -98,7 +97,7 @@ static void init_system(void)
 	const Vec2f offset(dist, 0.0);
 
 	// Set integration scheme.
-	setIntegrationHook(Euler);
+	setIntegrationHook(RungeKutta);
 
 	// Create three particles, attach them to each other, then add a
 	// circular wire constraint to the first.

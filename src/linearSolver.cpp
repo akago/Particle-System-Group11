@@ -147,23 +147,23 @@ double Constraint_ConjGrad(int n, int m, GlobalMatrix *A, double x[], double b[]
 
 	vecAssign(n, x, b);
 	vecAssign(n, r, b);
-	printf("¡¾Constraint_ConjGrad¡¿ b = ");
+	printf("ï¿½ï¿½Constraint_ConjGradï¿½ï¿½ b = ");
 	printVector(n, b);
 	A->matTransVecMult(x, temp1); 
-	printf("¡¾Constraint_ConjGrad¡¿ Jt x = ");
+	printf("ï¿½ï¿½Constraint_ConjGradï¿½ï¿½ Jt x = ");
 	printVector(m, temp1);
 	vecElewiseProd(m, temp1, W);
-	printf("¡¾Constraint_ConjGrad¡¿ W Jt x = ");
+	printf("ï¿½ï¿½Constraint_ConjGradï¿½ï¿½ W Jt x = ");
 	printVector(m, temp1);
 	A->matVecMult(temp1, temp);
-	printf("¡¾Constraint_ConjGrad¡¿ J W Jt x = ");
+	printf("ï¿½ï¿½Constraint_ConjGradï¿½ï¿½ J W Jt x = ");
 	printVector(n, temp);
 
 	vecDiffEqual(n, r, temp);
-	printf("¡¾Constraint_ConjGrad¡¿ r = ");
+	printf("ï¿½ï¿½Constraint_ConjGradï¿½ï¿½ r = ");
 	printVector(n, r);
 	rSqrLen = vecSqrLen(n, r);
-	printf("¡¾Constraint_ConjGrad¡¿rsqlen: %.8f, epsilon: %.8f\n", rSqrLen, epsilon);
+	printf("ï¿½ï¿½Constraint_ConjGradï¿½ï¿½rsqlen: %.8f, epsilon: %.8f\n", rSqrLen, epsilon);
 	vecAssign(n, d, r);
 
 	i = 0;
@@ -174,7 +174,7 @@ double Constraint_ConjGrad(int n, int m, GlobalMatrix *A, double x[], double b[]
 	if (rSqrLen > epsilon)
 		while (i < iMax) {
 			i++;
-			printf("¡¾Constraint_ConjGrad¡¿%d-th steps, error is %.6f\n", i, rSqrLen);
+			printf("ï¿½ï¿½Constraint_ConjGradï¿½ï¿½%d-th steps, error is %.6f\n", i, rSqrLen);
 			//A->matVecMult(d, t);
 			A->matTransVecMult(d, temp1);
 			vecElewiseProd(m, temp1, W);
@@ -231,7 +231,7 @@ double Constraint_ConjGrad(int n, int m, GlobalMatrix *A, double x[], double b[]
 	free(temp1);
 	//*steps = i;
 
-	printf("¡¾Constraint_ConjGrad¡¿Used %d steps, error is %.6f\n", steps, rSqrLen);
+	printf("ï¿½ï¿½Constraint_ConjGradï¿½ï¿½Used %d steps, error is %.6f\n", steps, rSqrLen);
 	return(rSqrLen);
 }
 

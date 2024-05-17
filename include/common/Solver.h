@@ -26,5 +26,3 @@ void SetSystemState(std::vector<Particle*> pVector, double* src);
 void Euler_step(std::vector<Particle*> pVector, std::vector<Force*> fVector, std::vector<Constraint*> cVector, float dt);
 void Midpoint_step(std::vector<Particle*> pVector, std::vector<Force*> fVector, std::vector<Constraint*> cVector, float dt);
 void Runge_Kutta_4(std::vector<Particle*> pVector, std::vector<Force*> fVector, std::vector<Constraint*> cVector, float dt);
-
-void ApplyConstraintForce(std::vector<Particle*> pVector, std::vector<Constraint*> cVector);
