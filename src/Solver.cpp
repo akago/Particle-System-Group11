@@ -111,12 +111,12 @@ void ApplyConstraintForce(std::vector<Particle*> pVector, std::vector<Constraint
 	vecTimesScalar(Constraint::global_cons_num, Cdot, Constraint::kd); // kd*Cdot
 	// Sum up
 	vecAddEqual(Constraint::global_cons_num, b, x);
-	//vecAddEqual(Constraint::global_cons_num, b, C);
-	//vecAddEqual(Constraint::global_cons_num, b, Cdot);
+	vecAddEqual(Constraint::global_cons_num, b, C);
+	vecAddEqual(Constraint::global_cons_num, b, Cdot);
 	vecTimesScalar(Constraint::global_cons_num, b, -1.0);
 	
 
-	double error = Constraint_ConjGrad(Constraint::global_cons_num, dimension, Constraint::GlobalJ, x, b, W, epsilon, steps);
+	Constraint_ConjGrad(Constraint::global_cons_num, dimension, Constraint::GlobalJ, x, b, W, epsilon, steps);
 	calculateError(dimension, x, b, W);
 	
 	Constraint::GlobalJ->matTransVecMult(x, Q);
@@ -126,8 +126,8 @@ void ApplyConstraintForce(std::vector<Particle*> pVector, std::vector<Constraint
 	printf("Constraint force: ");
 	printVector(dimension, Q);
 	for (auto particle : pVector) {
-		particle->m_Force[0] -= *(constraint_forces++);
-		particle->m_Force[1] -= *(constraint_forces++);
+		particle->m_Force[0] += *(constraint_forces++);
+		particle->m_Force[1] += *(constraint_forces++);
 	}
 	
 	free(q);

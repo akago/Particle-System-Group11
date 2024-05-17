@@ -114,8 +114,8 @@ static void init_system(void)
 	Constraint::GlobalJ = new GlobalMatrix(0,pVector.size()*2);
 	Constraint::GlobalJdot = new GlobalMatrix(0, pVector.size() * 2);
 	Constraint::global_cons_num = 0;
-	Constraint::kd = 0.0001;
-	Constraint::ks = 0.0002;
+	Constraint::kd = 0.001;
+	Constraint::ks = 0.002;
 
 	//cVector.push_back(new RodConstraint(pVector[1], pVector[2], dist));
 	cVector.push_back(new CircularWireConstraint(0, pVector[0], center, dist));
