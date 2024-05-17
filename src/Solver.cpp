@@ -1,5 +1,5 @@
 #include "Solver.h"
-
+#include "util.h"
 
 void ParticleDeriv(std::vector<Particle*> pVector, double* dst) {
 	for (auto p : pVector) {
@@ -51,12 +51,6 @@ void GetGlobalMatrices(std::vector<Constraint*> cVector, double* C, double* Cdot
 	}
 }
 
-void printVector(int n, double* num) {
-	for (int ii = 0; ii < n; ii++) {
-		printf("%.8f  ", num[ii]);
-	}
-	printf("\n");
-}
 
 double calculateError(int n, double* x, double* b, double* W) {
 	double* temp = (double*)malloc(n * sizeof(double));
@@ -78,7 +72,7 @@ double calculateError(int n, double* x, double* b, double* W) {
 }
 
 void ApplyConstraintForce(std::vector<Particle*> pVector, std::vector<Constraint*> cVector) {
-	double epsilon = 0.0001;
+	double epsilon = 0.000000001;
 	int steps = 0;
 	int dimension = pVector.size() * 2;
 
@@ -94,7 +88,7 @@ void ApplyConstraintForce(std::vector<Particle*> pVector, std::vector<Constraint
 	
 	
 
-	printf("¡¾ApplyConstraintForce¡¿Starting ........\n");
+	printf("¡¾ApplyConstraintForce¡¿===============STARTING===================\n");
 
 	GetGlobalVectors(pVector, q, Q, W, qdot);
 	
@@ -115,6 +109,10 @@ void ApplyConstraintForce(std::vector<Particle*> pVector, std::vector<Constraint
 	vecAddEqual(Constraint::global_cons_num, b, Cdot);
 	vecTimesScalar(Constraint::global_cons_num, b, -1.0);
 	
+	printf("C vector: ");
+	printVector(Constraint::global_cons_num, C);
+	printf("Cdot vector: ");
+	printVector(Constraint::global_cons_num, Cdot);
 
 	Constraint_ConjGrad(Constraint::global_cons_num, dimension, Constraint::GlobalJ, x, b, W, epsilon, steps);
 	calculateError(dimension, x, b, W);
@@ -129,7 +127,7 @@ void ApplyConstraintForce(std::vector<Particle*> pVector, std::vector<Constraint
 		particle->m_Force[0] += *(constraint_forces++);
 		particle->m_Force[1] += *(constraint_forces++);
 	}
-	
+	printf("¡¾ApplyConstraintForce¡¿===============END===================\n");
 	free(q);
 	free(Q);
 	free(W);
