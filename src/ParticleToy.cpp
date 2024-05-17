@@ -108,7 +108,7 @@ static void init_system(void)
 	pVector.push_back(new Particle(center + offset + offset + offset));
 	
 	fVector.push_back(new GravityForce(pVector));
-	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.005, 0.001));
+	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.01, 0.001));
 
 	// Create Global Constraint Jacobian Matrix
 	Constraint::GlobalJ = new GlobalMatrix(0,pVector.size()*2);
@@ -117,8 +117,8 @@ static void init_system(void)
 	Constraint::kd = 0.001;
 	Constraint::ks = 0.002;
 
-	//cVector.push_back(new RodConstraint(pVector[1], pVector[2], dist));
 	cVector.push_back(new CircularWireConstraint(0, pVector[0], center, dist));
+	cVector.push_back(new RodConstraint(1,2,pVector[1], pVector[2], dist));	
 }
 
 /*
