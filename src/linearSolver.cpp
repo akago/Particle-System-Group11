@@ -241,13 +241,6 @@ double Constraint_ConjGrad(int n, int m, GlobalMatrix *A, double x[], double b[]
 	return(rSqrLen);
 }
 
-void vecAddEqualWithFactor(int n, double r[], double v[], double factor)
-{
-	for (int i = 0; i < n; i++)
-		r[i] = r[i] + factor * v[i];
-}
-
-
 GlobalMatrix::GlobalMatrix() :
 	m_row(0), m_col(0){}
 
