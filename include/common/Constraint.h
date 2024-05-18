@@ -68,6 +68,7 @@ protected:
 */
 class RodConstraintv2 : public RodConstraint {
 public:
+	using RodConstraint::RodConstraint;
 	double eval() override;
 	double getTimeDeriv() override;
 	void fillJacobBlock() override;

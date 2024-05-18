@@ -118,7 +118,7 @@ static void init_system(void)
 	Constraint::ks = 0.002;
 
 	cVector.push_back(new CircularWireConstraint(0, pVector[0], center, dist));
-	cVector.push_back(new RodConstraint(1,2,pVector[1], pVector[2], dist));	
+	cVector.push_back(new RodConstraint(1,2,pVector[1], pVector[2], dist));
 }
 
 /*
