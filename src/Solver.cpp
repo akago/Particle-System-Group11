@@ -105,8 +105,8 @@ void ApplyConstraintForce(std::vector<Particle*> pVector, std::vector<Constraint
 	vecTimesScalar(Constraint::global_cons_num, Cdot, Constraint::kd); // kd*Cdot
 	// Sum up
 	vecAddEqual(Constraint::global_cons_num, b, x);
-	//vecAddEqual(Constraint::global_cons_num, b, C);
-	//vecAddEqual(Constraint::global_cons_num, b, Cdot);
+	vecAddEqual(Constraint::global_cons_num, b, C);
+	vecAddEqual(Constraint::global_cons_num, b, Cdot);
 	vecTimesScalar(Constraint::global_cons_num, b, -1.0);
 	
 	printf("C vector: ");

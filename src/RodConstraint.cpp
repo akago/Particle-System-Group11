@@ -82,7 +82,7 @@ double RodConstraintv2::eval() {
 double RodConstraintv2::getTimeDeriv() {
 	// C' = dC/dt = ((x1-x2)(vx1-vx2) + (y1-y2)(vy1-vy2)) / (¡Ì[(x1-x2)^2 + (y1-y2)^2]) 
 	double term1 = sqrt(pow(m_p1->m_Position[0] - m_p2->m_Position[0], 2) + pow(m_p1->m_Position[1] - m_p2->m_Position[1], 2));
-	double term2 = m_p1->m_Position[0] - m_p2->m_Position[0] * m_p1->m_Velocity[0] - m_p2->m_Velocity[0] + m_p1->m_Position[1] - m_p2->m_Position[1] * m_p1->m_Velocity[1] - m_p2->m_Velocity[1];
+	double term2 = (m_p1->m_Position[0] - m_p2->m_Position[0]) * (m_p1->m_Velocity[0] - m_p2->m_Velocity[0]) + (m_p1->m_Position[1] - m_p2->m_Position[1]) * (m_p1->m_Velocity[1] - m_p2->m_Velocity[1]);
 	return term2 / term1;
 }
 
@@ -109,13 +109,20 @@ void RodConstraintv2::fillJacobDotBlock() {
 	// J' = dC'/d(q2) =  -(term1' * (x1-x2) + term1 * (vx1-vx2)), -(term1' * (y1-y2) + term1 * (vy1-vy2))
 	std::vector<double> newval;
 
-	double u = pow(m_p1->m_Position[0] - m_p2->m_Position[0], 2) + pow(m_p1->m_Position[1] - m_p2->m_Position[1], 2);
-	double udot = 2 * (m_p1->m_Position[0] - m_p2->m_Position[0]) * (m_p1->m_Velocity[0] - m_p2->m_Velocity[0]) + 2 * (m_p1->m_Position[1] - m_p2->m_Position[1]) * (m_p1->m_Velocity[1] - m_p2->m_Velocity[1]);
-	double term1 = 1 / sqrt(u);
-	double term1deriv = -udot / (2 * pow(u, 3.0 / 2.0));
-
-	newval.push_back(term1deriv * (m_p1->m_Position[0] - m_p2->m_Position[0]) + term1 * m_p1->m_Velocity[0] - m_p2->m_Velocity[0]);
-	newval.push_back(term1deriv * (m_p1->m_Position[1] - m_p2->m_Position[1]) + term1 * m_p1->m_Velocity[1] - m_p2->m_Velocity[1]);
+	//double u = pow(m_p1->m_Position[0] - m_p2->m_Position[0], 2) + pow(m_p1->m_Position[1] - m_p2->m_Position[1], 2);
+	//double udot = 2 * (m_p1->m_Position[0] - m_p2->m_Position[0]) * (m_p1->m_Velocity[0] - m_p2->m_Velocity[0]) + 2 * (m_p1->m_Position[1] - m_p2->m_Position[1]) * (m_p1->m_Velocity[1] - m_p2->m_Velocity[1]);
+	//double term1 = 1 / sqrt(u);
+	//double term1deriv = -udot / (2 * pow(u, 3.0 / 2.0));
+	//newval.push_back(term1deriv * (m_p1->m_Position[0] - m_p2->m_Position[0]) + term1 * m_p1->m_Velocity[0] - m_p2->m_Velocity[0]);
+	//newval.push_back(term1deriv * (m_p1->m_Position[1] - m_p2->m_Position[1]) + term1 * m_p1->m_Velocity[1] - m_p2->m_Velocity[1]);
+	double term1 = (m_p1->m_Velocity[0] - m_p2->m_Velocity[0]) * pow(m_p1->m_Position[1] - m_p2->m_Position[1], 2);
+	double term2 = (m_p1->m_Position[0] - m_p2->m_Position[0]) * (m_p1->m_Position[1] - m_p2->m_Position[1]) * (m_p1->m_Velocity[1] - m_p2->m_Velocity[1]);
+	double term3 = (m_p1->m_Velocity[1] - m_p2->m_Velocity[1]) * pow(m_p1->m_Position[0] - m_p2->m_Position[0], 2);
+	double term4 = (m_p1->m_Position[1] - m_p2->m_Position[1]) * (m_p1->m_Position[0] - m_p2->m_Position[0]) * (m_p1->m_Velocity[0] - m_p2->m_Velocity[0]);
+	double term5 = pow(pow(m_p1->m_Position[0] - m_p2->m_Position[0], 2) + pow(m_p1->m_Position[1] - m_p2->m_Position[1], 2), 1.5);
+	newval.push_back((term1 - term2) / term5);
+	newval.push_back((term3 - term4) / term5);
+	
 	GlobalJdot->fillBlockat(m_c_idx, m_p1_idx, newval);
 
 	newval[0] = -newval[0];
