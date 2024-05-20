@@ -47,13 +47,13 @@ class CircularWireConstraint : public Constraint {
 class RodConstraint : public Constraint {
 public:
 	RodConstraint(int p1_idx, int p2_idx, Particle *p1, Particle * p2, double dist);
-	/*double eval() override;
+	double eval() override;
 	double getTimeDeriv() override;
 	void fillJacobBlock() override;
-	void fillJacobDotBlock() override;*/
+	void fillJacobDotBlock() override;
 	void draw();
 
-private:
+protected:
 	int m_p1_idx;
 	int m_p2_idx;
 	Particle * const m_p1;
@@ -66,11 +66,12 @@ private:
 /*
 	Constraint Equation: C(x1,y1,x2,y2) = ��[(x1-x2)^2 + (y1-y2)^2] - r
 */
-//class RodConstraintv2 : public RodConstraint {
-//public:
-//	double eval() override;
-//	double getTimeDeriv() override;
-//	void fillJacobBlock() override;
-//	void fillJacobDotBlock() override;
-//};
+class RodConstraintv2 : public RodConstraint {
+public:
+	using RodConstraint::RodConstraint;
+	double eval() override;
+	double getTimeDeriv() override;
+	void fillJacobBlock() override;
+	void fillJacobDotBlock() override;
+};
 

@@ -54,6 +54,7 @@ public:
 	void fillBlockat(int i, int j, std::vector<double> values);
 	void matVecMult(double x[], double r[]) override;
 	void matTransVecMult(double x[], double r[]) override;
+	void printMatrix();
 };
 
 

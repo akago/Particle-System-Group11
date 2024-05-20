@@ -89,6 +89,10 @@ void Euler_step(std::vector<Particle*> pVector, std::vector<Force*> fVector, std
 	double* k1 = ComputeK1(pVector, fVector, cVector, dt);
 	vecAddEqual(pVector.size() * 4, state, k1);
 	SetSystemState(pVector, state);
+	/*pVector[1]->m_Position[0] = pVector[1]->m_ConstructPos[0];
+	pVector[1]->m_Position[1] = pVector[1]->m_ConstructPos[1];
+	pVector[1]->m_Velocity[1] = 0.0;
+	pVector[1]->m_Velocity[0] = 0.0;*/
 	free(state);
 	free(k1);
 }
