@@ -19,7 +19,7 @@ double AngularSpring::calculate_rest_len() {
 	double x2x1 = distance(anglePoint->m_Position, endPoint1->m_Position);
 	double x2x3 = distance(anglePoint->m_Position, endPoint2->m_Position);
 
-	printf("cos 60: %.8f\n", cos(m_angle));
+	//printf("cos 60: %.8f\n", cos(m_angle));
 	return sqrt((x2x1 * x2x1) + (x2x3 * x2x3) + 2 * (x2x1 * x2x3) * cos(m_angle)) / 2;
 
 }
@@ -41,10 +41,10 @@ double AngularSpring::applyForce() {
 	SpringForce* virtual_force = new SpringForce(mid, anglePoint, d0, m_ks, m_kd);
 
 	double d = distance(mid->m_Position, anglePoint->m_Position);
-	printf("midpoint: (%.2f,%.2f)\n", mid->m_Position[0], mid->m_Position[1]);
+	/*printf("midpoint: (%.2f,%.2f)\n", mid->m_Position[0], mid->m_Position[1]);
 	printf("p1: (%.2f,%.2f)\n", endPoint1->m_Position[0], endPoint1->m_Position[1]);
 	printf("p3: (%.2f,%.2f)\n", endPoint2->m_Position[0], endPoint2->m_Position[1]);
-	printf("¡¾AngularSpring¡¿==================Current distance£º%.8f, Current rest distance: %.8f\n============", d, d0);
+	printf("¡¾AngularSpring¡¿==================Current distance£º%.8f, Current rest distance: %.8f\n============", d, d0);*/
 	F = virtual_force->applyForce() / 2;
 
 	endPoint1->m_Force[0] -= uv[0] * F;
