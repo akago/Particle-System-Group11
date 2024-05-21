@@ -42,6 +42,30 @@ class CircularWireConstraint : public Constraint {
 };
 
 /*
+	Constraint Equation: C(x,y) = (a*x) + (b*y) - c
+*/
+class LineWireConstraint : public Constraint {
+ public:
+  LineWireConstraint(int p_idx, Particle *p, const double a, const double b, const double c);
+  double eval() override;
+  double getTimeDeriv() override;
+  void fillJacobBlock() override;
+  void fillJacobDotBlock() override;
+  void draw() override;
+
+ private:
+  int m_p_idx;
+  Particle * const m_p;
+  const double m_a;
+  const double m_b;
+  const double m_c;
+  // index of constraint instance 
+  int m_c_idx;
+
+  double borderIntersection[4];
+};
+
+/*
 	Constraint Equation: C(x1,y1,x2,y2) = (x1-x2)^2 + (y1-y2)^2 - r^2
 */
 class RodConstraint : public Constraint {

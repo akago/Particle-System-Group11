@@ -291,8 +291,8 @@ void GlobalMatrix::printMatrix() {
 			for (auto block : sparse_mat) {
 				if (block.i == ii && block.j == jj) {
 					flag = 1;
-					//printf("%.8f  ", block.values[0]);
-					//printf("%.8f  ", block.values[1]);
+					printf("%.8f  ", block.values[0]);
+					printf("%.8f  ", block.values[1]);
 				}
 			}
 			if (flag) {
@@ -300,11 +300,11 @@ void GlobalMatrix::printMatrix() {
 			}
 			else {
 				double zero = 0.0;
-				//printf("%.8f  ", zero);
-				//printf("%.8f  ", zero);
+				printf("%.8f  ", zero);
+				printf("%.8f  ", zero);
 			}
 		}
-		//printf("\n");
+		printf("\n");
 	}
-	//printf("\n");
+	printf("\n");
 }

@@ -40,6 +40,34 @@ ParticleSystem* sample1() {
     return system;
 }
 
+ParticleSystem* sample2() {
+    ParticleSystem* system = new ParticleSystem();
+
+    system->setDt(0.1f);
+
+	const Vec2f center(0.0, 0.0);
+
+	// Set integration scheme.
+	system->setIntegrationHook(RungeKutta);
+
+    Particle* particle0 = new Particle(center);
+
+	system->addParticle(particle0);
+	
+	system->addForce(new GravityForce(system->getParticles(), 0.005));
+
+	// Create Global Constraint Jacobian Matrix
+	Constraint::GlobalJ = new GlobalMatrix(0,system->particleCount()*2);
+	Constraint::GlobalJdot = new GlobalMatrix(0, system->particleCount() * 2);
+	Constraint::global_cons_num = 0;
+	Constraint::kd = 0.001;
+	Constraint::ks = 0.002;
+
+	system->addConstraint(new LineWireConstraint(0, particle0, 1, -1, 0));
+
+    return system;
+}
+
 ParticleSystem* cloth1() {
 	double posX = -0.5;
     double posY = 0.5;
@@ -59,13 +87,15 @@ ParticleSystem* cloth1() {
 	double shear_ks = ks;
     double shear_kd = kd;
 
-	ClothParticleSystem* system = new ClothParticleSystem(posX, posY, width, height, dist, mass ,structural_ks, structural_kd, flexion_ks, flexion_kd, shear_ks, shear_kd);
+	double deformation_rate = 1.1;
 
-	system->setCornerConstraints();
+	ClothParticleSystem* system = new ClothParticleSystem(posX, posY, width, height, dist, mass ,structural_ks, structural_kd, flexion_ks, flexion_kd, shear_ks, shear_kd, deformation_rate);
 
-	((ParticleSystem*)system)->setIntegrationHook(RungeKutta);
-	((ParticleSystem*)system)->setDt(0.05);
-	((ParticleSystem*)system)->addForce(new GravityForce(((ParticleSystem*)system)->getParticles(), 0.05));
+	system->fixTopCornersToLine();
 
-	return (ParticleSystem*)system;
+	system->setIntegrationHook(RungeKutta);
+	system->setDt(0.01);
+	system->addForce(new GravityForce(system->getParticles(), 0.05));
+
+	return system;
 }

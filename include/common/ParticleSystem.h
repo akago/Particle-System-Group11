@@ -10,7 +10,7 @@
 class ParticleSystem {
     public:
         ParticleSystem();
-        ~ParticleSystem();
+        virtual ~ParticleSystem();
         
         void setIntegrationHook(IntegrationType t);
         virtual void simulationStep();

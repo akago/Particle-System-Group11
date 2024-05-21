@@ -185,6 +185,11 @@ static void key_func ( unsigned char key, int x, int y )
 		exit ( 0 );
 		break;
 
+	case 's':
+	case 'S':
+		particleSystem->simulationStep();
+		break;
+
 	case ' ':
 		dsim = !dsim;
 		break;
