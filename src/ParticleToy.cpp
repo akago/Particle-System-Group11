@@ -408,6 +408,23 @@ static void display_func ( void )
 }
 
 
+
+/*
+	create integration menu
+*/
+void integrationMenuAdapter(int option) {
+	IntegrationType type = static_cast<IntegrationType>(option);
+	setIntegrationHook(type);
+}
+
+void createMenu() {
+    int menuID = glutCreateMenu(integrationMenuAdapter);
+    glutAddMenuEntry("Euler Integration", Euler);
+    glutAddMenuEntry("Midpoint Integration", Midpoint);
+    glutAddMenuEntry("Runge-Kutta4 Integration", RungeKutta);
+    glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
+
 /*
 ----------------------------------------------------------------------
 open_glut_window --- open a glut compatible window and set callbacks
@@ -454,7 +471,7 @@ int main ( int argc, char ** argv )
 
 	if ( argc == 1 ) {
 		N = 64;
-		dt = 0.1f;
+		dt = 0.2f;
 		d = 5.f;
 		fprintf ( stderr, "Using defaults : N=%d dt=%g d=%g\n",
 			N, dt, d );
@@ -478,7 +495,7 @@ int main ( int argc, char ** argv )
 	win_x = 512;
 	win_y = 512;
 	open_glut_window ();
-
+	createMenu();
 	glutMainLoop ();
 
 	exit ( 0 );
