@@ -91,8 +91,11 @@ static void clear_data ( void )
 	}
 }
 
-static void init_system(void)
-{
+/*
+	Circle, Rod, Linear Spring
+*/
+
+static void situation1(void) {
 	const double dist = 0.2;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
@@ -106,19 +109,62 @@ static void init_system(void)
 	pVector.push_back(new Particle(center + offset));
 	pVector.push_back(new Particle(center + offset + offset));
 	pVector.push_back(new Particle(center + offset + offset + offset));
-	
+
 	fVector.push_back(new GravityForce(pVector));
-	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.01, 0.01));
+	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.01, 0.1));
 
 	// Create Global Constraint Jacobian Matrix
-	Constraint::GlobalJ = new GlobalMatrix(0,pVector.size()*2);
+	Constraint::GlobalJ = new GlobalMatrix(0, pVector.size() * 2);
 	Constraint::GlobalJdot = new GlobalMatrix(0, pVector.size() * 2);
 	Constraint::global_cons_num = 0;
 	Constraint::kd = 0.2;
 	Constraint::ks = 0.3;
 
 	cVector.push_back(new CircularWireConstraint(0, pVector[0], center, dist));
-	cVector.push_back(new RodConstraint(1,2,pVector[1], pVector[2], dist));
+	cVector.push_back(new RodConstraint(1, 2, pVector[1], pVector[2], dist));
+}
+
+
+/*
+	Angular string
+*/
+static void situation2(void) {
+	const double dist = 0.2;
+	const Vec2f center(0.0, 0.0);
+	const Vec2f offset(dist, 0.0);
+	double alpha = degreesToRadians(90); // degrees
+
+	// Set integration scheme.
+	setIntegrationHook(Euler);
+
+	// Create three particles, attach them to each other
+
+	pVector.push_back(new Particle(center + offset));
+	pVector.push_back(new Particle(center + offset + offset));
+	// pVector.push_back(new Particle(Vec2f(center[0] + dist + dist, center[0] - dist)));
+	pVector.push_back(new Particle(Vec2f(center[0] + dist + dist + dist/2, center[0] - sqrt(3) / 2 * dist)));
+
+	fVector.push_back(new GravityForce(pVector));
+	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.07, 0.15));
+	fVector.push_back(new SpringForce(pVector[1], pVector[2], dist, 0.1, 0.15));
+	fVector.push_back(new AngularSpring(pVector[0], pVector[1], pVector[2], alpha, 0.2, 0.35));
+
+
+	// Create Global Constraint Jacobian Matrix
+	Constraint::GlobalJ = new GlobalMatrix(0, pVector.size() * 2);
+	Constraint::GlobalJdot = new GlobalMatrix(0, pVector.size() * 2);
+	Constraint::global_cons_num = 0;
+	Constraint::kd = 0.2;
+	Constraint::ks = 0.3;
+
+	cVector.push_back(new CircularWireConstraint(0, pVector[0], center, dist));
+
+}
+
+static void init_system(void)
+{
+	situation2();
+
 }
 
 /*

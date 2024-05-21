@@ -8,7 +8,7 @@ SpringForce::SpringForce(Particle *p1, Particle * p2, double dist, double ks, do
 
 
 
-void SpringForce::applyForce() {
+double SpringForce::applyForce() {
 	double *I = (double *)malloc(sizeof(double) * 2);
 	double *Idot = (double *)malloc(sizeof(double) * 2);
 	double *force = (double *)malloc(sizeof(double) * 2);
@@ -31,6 +31,9 @@ void SpringForce::applyForce() {
 	m_p1->m_Force[1] += force[1];
 	m_p2->m_Force[0] -= force[0];
 	m_p2->m_Force[1] -= force[1];
+
+	// Return magnitude of spring force
+	return sqrt((force[0] * force[0]) + (force[1] * force[1]));
 
 	free(I);
 	free(Idot);
