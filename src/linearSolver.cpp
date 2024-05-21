@@ -88,7 +88,7 @@ double ConjGrad(int n, implicitMatrix *A, double x[], double b[],
       u = vecDot(n, d, t);
       
       if (u == 0) {
-	printf("(SolveConjGrad) d'Ad = 0\n");
+	//printf("(SolveConjGrad) d'Ad = 0\n");
 	break;
       }
       
@@ -153,23 +153,23 @@ double Constraint_ConjGrad(int n, int m, GlobalMatrix *A, double x[], double b[]
 
 	vecAssign(n, x, b);
 	vecAssign(n, r, b);
-	//printf("��Constraint_ConjGrad�� b = ");
+	////printf("��Constraint_ConjGrad�� b = ");
 	//printVector(n, b);
 	A->matTransVecMult(x, temp1); 
-	//printf("��Constraint_ConjGrad�� Jt x = ");
+	////printf("��Constraint_ConjGrad�� Jt x = ");
 	//printVector(m, temp1);
 	vecElewiseProd(m, temp1, W);
-	//printf("��Constraint_ConjGrad�� W Jt x = ");
+	////printf("��Constraint_ConjGrad�� W Jt x = ");
 	//printVector(m, temp1);
 	A->matVecMult(temp1, temp);
-	//printf("��Constraint_ConjGrad�� J W Jt x = ");
+	////printf("��Constraint_ConjGrad�� J W Jt x = ");
 	//printVector(n, temp);
 
 	vecDiffEqual(n, r, temp);
-	//printf("��Constraint_ConjGrad�� r = ");
+	////printf("��Constraint_ConjGrad�� r = ");
 	//printVector(n, r);
 	rSqrLen = vecSqrLen(n, r);
-	//printf("��Constraint_ConjGrad��rsqlen: %.8f, epsilon: %.8f\n", rSqrLen, epsilon);
+	////printf("��Constraint_ConjGrad��rsqlen: %.8f, epsilon: %.8f\n", rSqrLen, epsilon);
 	vecAssign(n, d, r);
 
 	i = 0;
@@ -180,7 +180,7 @@ double Constraint_ConjGrad(int n, int m, GlobalMatrix *A, double x[], double b[]
 	if (rSqrLen > epsilon)
 		while (i < iMax) {
 			i++;
-			//printf("��Constraint_ConjGrad��%d-th steps, error is %.6f\n", i, rSqrLen);
+			////printf("��Constraint_ConjGrad��%d-th steps, error is %.6f\n", i, rSqrLen);
 			//A->matVecMult(d, t);
 			A->matTransVecMult(d, temp1);
 			vecElewiseProd(m, temp1, W);
@@ -189,7 +189,7 @@ double Constraint_ConjGrad(int n, int m, GlobalMatrix *A, double x[], double b[]
 			u = vecDot(n, d, t);
 
 			if (u == 0) {
-				printf("(SolveConjGrad) d'Ad = 0\n");
+				//printf("(SolveConjGrad) d'Ad = 0\n");
 				break;
 			}
 
@@ -291,8 +291,8 @@ void GlobalMatrix::printMatrix() {
 			for (auto block : sparse_mat) {
 				if (block.i == ii && block.j == jj) {
 					flag = 1;
-					printf("%.8f  ", block.values[0]);
-					printf("%.8f  ", block.values[1]);
+					//printf("%.8f  ", block.values[0]);
+					//printf("%.8f  ", block.values[1]);
 				}
 			}
 			if (flag) {
@@ -300,11 +300,11 @@ void GlobalMatrix::printMatrix() {
 			}
 			else {
 				double zero = 0.0;
-				printf("%.8f  ", zero);
-				printf("%.8f  ", zero);
+				//printf("%.8f  ", zero);
+				//printf("%.8f  ", zero);
 			}
 		}
-		printf("\n");
+		//printf("\n");
 	}
-	printf("\n");
+	//printf("\n");
 }

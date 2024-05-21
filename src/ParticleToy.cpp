@@ -1,12 +1,16 @@
 // ParticleToy.cpp : Defines the entry point for the console application.
 //
 
+#include "ParticleSystem.h"
+#include "ClothParticleSystem.h"
 #include "Particle.h"
 #include "Force.h"
 #include "imageio.h"
 #include "Solver.h"
 #include "Constraint.h"
 #include "LinearSolver.h"
+
+#include "SampleSystems.h"
 
 #include <iostream>
 #include <limits>
@@ -17,20 +21,13 @@
 
 /* macros */
 
-/* external definitions (from solver) */
-
-IntegrationFunctionHook simulation_step = nullptr;
-
 /* global variables */
 
 static int N;
-static float dt, d;
+static float d;
 static int dsim;
 static int dump_frames;
 static int frame_number;
-
-// static Particle *pList;
-static std::vector<Particle*> pVector;
 
 static int win_id;
 static int win_x, win_y;
@@ -40,35 +37,7 @@ static int mouse_shiftclick[3];
 static int omx, omy, mx, my;
 static int hmx, hmy;
 
-static std::vector<Force*> fVector;
-static std::vector<Constraint*> cVector;
-
-/*
-----------------------------------------------------------------------
-Set hook function -- plugable integration scheme
-Euler: Euler step
-Midpoint: Midpoint step
-RungeKutta: RungeKutta-4 step
-----------------------------------------------------------------------
-*/
-
-void setIntegrationHook(IntegrationType t) {
-	switch (t)
-	{
-		case Euler:
-			simulation_step = Euler_step;
-			break;
-		case Midpoint:
-			simulation_step = Midpoint_step;
-			break;
-		case RungeKutta:
-			simulation_step = Runge_Kutta_4;
-			break;
-		default:
-			simulation_step = Midpoint_step; //default approach
-			break;
-	}
-}
+static ParticleSystem* particleSystem = nullptr;
 
 /*
 ----------------------------------------------------------------------
@@ -78,48 +47,23 @@ free/clear/allocate simulation data
 
 static void free_data ( void )
 {
-	pVector.clear();
-	fVector.clear();
-	cVector.clear();
-}
-
-static void clear_data ( void )
-{
-	int ii, size = pVector.size();
-
-	for(ii=0; ii<size; ii++){
-		pVector[ii]->reset();
-	}
+	delete particleSystem;
 }
 
 static void init_system(void)
 {
-	const double dist = 0.2;
-	const Vec2f center(0.0, 0.0);
-	const Vec2f offset(dist, 0.0);
+	// ClothSystem* system = new ClothSystem();
+	// system->initSystem(pVector, fVector);
+	// system->setCornerConstraints(pVector, cVector);
+	// fVector.push_back(new GravityForce(pVector));
 
-	// Set integration scheme.
-	setIntegrationHook(RungeKutta);
+	// setIntegrationHook(RungeKutta);
 
-	// Create three particles, attach them to each other, then add a
-	// circular wire constraint to the first.
-
-	pVector.push_back(new Particle(center + offset));
-	pVector.push_back(new Particle(center + offset + offset));
-	pVector.push_back(new Particle(center + offset + offset + offset));
+	// delete system;
+	// int ii, size = pVector.size();
 	
-	fVector.push_back(new GravityForce(pVector));
-	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.01, 0.01));
-
-	// Create Global Constraint Jacobian Matrix
-	Constraint::GlobalJ = new GlobalMatrix(0,pVector.size()*2);
-	Constraint::GlobalJdot = new GlobalMatrix(0, pVector.size() * 2);
-	Constraint::global_cons_num = 0;
-	Constraint::kd = 0.2;
-	Constraint::ks = 0.3;
-
-	cVector.push_back(new CircularWireConstraint(0, pVector[0], center, dist));
-	cVector.push_back(new RodConstraint(1,2,pVector[1], pVector[2], dist));
+	particleSystem = cloth1();
+	particleSystem->clear_data();
 }
 
 /*
@@ -164,33 +108,6 @@ static void post_display ( void )
 	glutSwapBuffers ();
 }
 
-static void draw_particles ( void )
-{
-	int size = pVector.size();
-
-	for(int ii=0; ii< size; ii++)
-	{
-		pVector[ii]->draw();
-	}
-}
-
-static void draw_forces ( void )
-{
-	// change this to iteration over full set
-	for (auto force : fVector) {
-		force->draw();
-	}
-		
-}
-
-static void draw_constraints ( void )
-{
-	// change this to iteration over full set
-	for (auto constraint : cVector) {
-		constraint->draw();
-	}
-}
-
 /*
 ----------------------------------------------------------------------
 relates mouse movements to particle toy construction
@@ -229,18 +146,18 @@ static void get_from_UI ()
 	omy = my;
 }
 
-static void remap_GUI()
-{
-	int ii, size = pVector.size();
-	for(ii=0; ii<size; ii++)
-	{
-		//pVector[ii]->m_Position[0] = pVector[ii]->m_ConstructPos[0];
-		//pVector[ii]->m_Position[1] = pVector[ii]->m_ConstructPos[1];
-		//pVector[ii]->clearForce();
+// static void remap_GUI()
+// {
+// 	int ii, size = pVector.size();
+// 	for(ii=0; ii<size; ii++)
+// 	{
+// 		//pVector[ii]->m_Position[0] = pVector[ii]->m_ConstructPos[0];
+// 		//pVector[ii]->m_Position[1] = pVector[ii]->m_ConstructPos[1];
+// 		//pVector[ii]->clearForce();
 
-		pVector[ii]->reset();
-	}
-}
+// 		pVector[ii]->reset();
+// 	}
+// }
 
 /*
 ----------------------------------------------------------------------
@@ -254,7 +171,7 @@ static void key_func ( unsigned char key, int x, int y )
 	{
 	case 'c':
 	case 'C':
-		clear_data ();
+		particleSystem->clear_data();
 		break;
 
 	case 'd':
@@ -302,8 +219,8 @@ static void reshape_func ( int width, int height )
 
 static void idle_func ( void )
 {
-	if ( dsim ) simulation_step( pVector, fVector, cVector, dt);
-	else        {get_from_UI();remap_GUI();}
+	if ( dsim ) particleSystem->simulationStep();
+	else        {get_from_UI();}
 
 	glutSetWindow ( win_id );
 	glutPostRedisplay ();
@@ -313,9 +230,9 @@ static void display_func ( void )
 {
 	pre_display ();
 
-	draw_forces();
-	draw_constraints();
-	draw_particles();
+	particleSystem->drawForces();
+	particleSystem->drawConstraints();
+	particleSystem->drawParticles();
 
 	post_display ();
 }
@@ -367,14 +284,12 @@ int main ( int argc, char ** argv )
 
 	if ( argc == 1 ) {
 		N = 64;
-		dt = 0.1f;
 		d = 5.f;
-		fprintf ( stderr, "Using defaults : N=%d dt=%g d=%g\n",
-			N, dt, d );
+		fprintf ( stderr, "Using defaults : N=%d d=%g\n",
+			N, d );
 	} else {
 		N = atoi(argv[1]);
-		dt = atof(argv[2]);
-		d = atof(argv[3]);
+		d = atof(argv[2]);
 	}
 
 	printf ( "\n\nHow to use this application:\n\n" );

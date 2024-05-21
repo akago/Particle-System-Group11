@@ -26,7 +26,7 @@ private:
 
 class GravityForce : public Force {
 public:
-	GravityForce(std::vector<Particle*> pVector);
+	GravityForce(std::vector<Particle*> pVector, double gConstant = 0.05);
 	void applyForce() override;
 	void draw() override;
 

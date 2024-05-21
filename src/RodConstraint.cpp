@@ -34,7 +34,7 @@ void RodConstraint::fillJacobBlock() {
 	newval[0] = -newval[0];
 	newval[1] = -newval[1];
 	GlobalJ->fillBlockat(m_c_idx, m_p2_idx, newval);
-	printf("��fillJacobBlock�� GlobalJ:\n");
+	//printf("��fillJacobBlock�� GlobalJ:\n");
 	GlobalJ->printMatrix();
 }
 
@@ -51,7 +51,7 @@ void RodConstraint::fillJacobDotBlock() {
 	newval[1] = -newval[1];
 	
 	GlobalJdot->fillBlockat(m_c_idx, m_p2_idx, newval);
-	printf("��fillJacobDotBlock�� GlobalJdot:\n");
+	//printf("��fillJacobDotBlock�� GlobalJdot:\n");
 	GlobalJdot->printMatrix();
 }
 

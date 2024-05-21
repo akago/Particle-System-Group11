@@ -1,7 +1,7 @@
 #include "Force.h"
 
-GravityForce::GravityForce(std::vector<Particle*> pVector) :
-	m_pVector(pVector), m_gconstant(0.001) {}
+GravityForce::GravityForce(std::vector<Particle*> pVector, double gConstant) :
+	m_pVector(pVector), m_gconstant(gConstant) {}
 
 void GravityForce::applyForce() {
 	for (auto p : m_pVector) {
@@ -10,6 +10,6 @@ void GravityForce::applyForce() {
 }
 
 void GravityForce::draw() {
-
+	
 }
 
