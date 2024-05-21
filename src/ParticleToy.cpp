@@ -233,33 +233,32 @@ static void reshape_func(int width, int height)
 static void idle_func(void)
 {
 	if (dsim) {
-		// if (mouse_down[0]) {
-		// 	mouseParticle->m_Position[0] = (2.0*mx / win_x) - 1;
-		// 	mouseParticle->m_Position[1] = -(2.0*my / win_y) + 1;
+		if (mouse_down[0]) {
+			mouseParticle->m_Position[0] = (2.0*mx / win_x) - 1;
+			mouseParticle->m_Position[1] = -(2.0*my / win_y) + 1;
 
-		// 	Particle *closestParticle;
-		// 	float closestDistanceSquared = std::numeric_limits<float>::max();
+			Particle *closestParticle;
+			float closestDistanceSquared = std::numeric_limits<float>::max();
 
-		// 	for (auto p : pVector) {
-		// 		float dx = (mouseParticle->m_Position[0] - p->m_Position[0]);
-		// 		float dy = (mouseParticle->m_Position[1] - p->m_Position[1]);
-		// 		float distanceSquared = dx * dx + dy * dy;
-		// 		if (distanceSquared < closestDistanceSquared) {
-		// 			closestParticle = p;
-		// 			closestDistanceSquared = distanceSquared;
-		// 		}
-		// 	}
-		// 	mouseSpringForce = new SpringForce(mouseParticle, closestParticle, 0, 0.05, 0.2);
+			for (auto p : particleSystem->getParticles()) {
+				float dx = (mouseParticle->m_Position[0] - p->m_Position[0]);
+				float dy = (mouseParticle->m_Position[1] - p->m_Position[1]);
+				float distanceSquared = dx * dx + dy * dy;
+				if (distanceSquared < closestDistanceSquared) {
+					closestParticle = p;
+					closestDistanceSquared = distanceSquared;
+				}
+			}
+			mouseSpringForce = new SpringForce(mouseParticle, closestParticle, 0, 5.0, 2.0);
 
-		// 	fVector.push_back(mouseSpringForce);
-		// 	simulation_step(pVector, fVector, cVector, dt);
-		// 	fVector.pop_back();
-		// 	delete mouseSpringForce;
-		// }
-		// else {
-		// 	simulation_step(pVector, fVector, cVector, dt);
-		// }
-		particleSystem->simulationStep();
+			particleSystem->addForce(mouseSpringForce);
+			particleSystem->simulationStep();
+			particleSystem->removeLastForce();
+			delete mouseSpringForce;
+		}
+		else {
+			particleSystem->simulationStep();
+		}
 	}
 	else {
 		get_from_UI();
@@ -385,6 +384,7 @@ int main(int argc, char ** argv)
 	dump_frames = 0;
 	frame_number = 0;
 
+	mouseParticle = new Particle(Vec2f(0,0));
 	init_system();
 
 	win_x = 512;

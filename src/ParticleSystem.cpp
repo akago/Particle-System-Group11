@@ -50,6 +50,10 @@ void ParticleSystem::addConstraint(Constraint* constraint) {
     constraints.push_back(constraint);
 }
 
+void ParticleSystem::removeLastForce() {
+	forces.pop_back();
+}
+
 std::vector<Particle*>& ParticleSystem::getParticles() {
     return particles;
 }

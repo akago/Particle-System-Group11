@@ -21,6 +21,8 @@ class ParticleSystem {
         void addForce(Force* force);
         void addConstraint(Constraint* constraint);
 
+        void removeLastForce();
+
         std::vector<Particle*>& getParticles();
         std::vector<Force*>& getForces();
         std::vector<Constraint*>& getConstraints();
