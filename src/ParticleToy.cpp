@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <GL/glut.h>
+#include <iostream>
+#include <limits>
 
 /* macros */
 
@@ -40,6 +42,9 @@ static int hmx, hmy;
 
 static std::vector<Force*> fVector;
 static std::vector<Constraint*> cVector;
+
+static Particle *mouseParticle;
+static SpringForce *mouseSpringForce;
 
 /*
 ----------------------------------------------------------------------
@@ -80,6 +85,8 @@ static void free_data ( void )
 	pVector.clear();
 	fVector.clear();
 	cVector.clear();
+	delete mouseParticle;
+	delete mouseSpringForce;
 }
 
 static void clear_data ( void )
@@ -101,7 +108,7 @@ static void situation1(void) {
 	const Vec2f offset(dist, 0.0);
 
 	// Set integration scheme.
-	setIntegrationHook(Euler);
+	setIntegrationHook(Midpoint);
 
 	// Create three particles, attach them to each other, then add a
 	// circular wire constraint to the first.
@@ -111,7 +118,7 @@ static void situation1(void) {
 	pVector.push_back(new Particle(center + offset + offset + offset));
 
 	fVector.push_back(new GravityForce(pVector));
-	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.01, 0.1));
+	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.1, 0.15));
 
 	// Create Global Constraint Jacobian Matrix
 	Constraint::GlobalJ = new GlobalMatrix(0, pVector.size() * 2);
@@ -122,6 +129,9 @@ static void situation1(void) {
 
 	cVector.push_back(new CircularWireConstraint(0, pVector[0], center, dist));
 	cVector.push_back(new RodConstraint(1, 2, pVector[1], pVector[2], dist));
+
+	// Mouse particle
+	mouseParticle = new Particle(center);
 }
 
 
@@ -132,7 +142,7 @@ static void situation2(void) {
 	const double dist = 0.2;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
-	double alpha = degreesToRadians(90); // degrees
+	double alpha = degreesToRadians(180); // degrees
 
 	// Set integration scheme.
 	setIntegrationHook(Euler);
@@ -147,7 +157,7 @@ static void situation2(void) {
 	fVector.push_back(new GravityForce(pVector));
 	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.07, 0.15));
 	fVector.push_back(new SpringForce(pVector[1], pVector[2], dist, 0.1, 0.15));
-	fVector.push_back(new AngularSpring(pVector[0], pVector[1], pVector[2], alpha, 0.2, 0.35));
+	fVector.push_back(new AngularSpring(pVector[0], pVector[1], pVector[2], alpha, 0.05, 0.2));
 
 
 	// Create Global Constraint Jacobian Matrix
@@ -159,11 +169,13 @@ static void situation2(void) {
 
 	cVector.push_back(new CircularWireConstraint(0, pVector[0], center, dist));
 
+	// Mouse particle
+	mouseParticle = new Particle(center);
 }
 
 static void init_system(void)
 {
-	situation2();
+	situation1();
 
 }
 
@@ -347,8 +359,38 @@ static void reshape_func ( int width, int height )
 
 static void idle_func ( void )
 {
-	if ( dsim ) simulation_step( pVector, fVector, cVector, dt);
-	else        {get_from_UI();remap_GUI();}
+	if (dsim) {
+		if (mouse_down[0]) {
+			mouseParticle->m_Position[0] = (2.0*mx / win_x) - 1;
+			mouseParticle->m_Position[1] = -(2.0*my / win_y) + 1;
+
+			Particle *closestParticle;
+			float closestDistanceSquared = std::numeric_limits<float>::max();
+
+			for (auto p : pVector) {
+				float dx = (mouseParticle->m_Position[0] - p->m_Position[0]);
+				float dy = (mouseParticle->m_Position[1] - p->m_Position[1]);
+				float distanceSquared = dx * dx + dy * dy;
+				if (distanceSquared < closestDistanceSquared) {
+					closestParticle = p;
+					closestDistanceSquared = distanceSquared;
+				}
+			}
+			mouseSpringForce = new SpringForce(mouseParticle, closestParticle, 0, 0.05, 0.2);
+
+			fVector.push_back(mouseSpringForce);
+			simulation_step(pVector, fVector, cVector, dt);
+			fVector.pop_back();
+			delete mouseSpringForce;
+		}
+		else {
+			simulation_step(pVector, fVector, cVector, dt);
+		}
+	}
+	else {
+		get_from_UI();
+		remap_GUI();
+	}
 
 	glutSetWindow ( win_id );
 	glutPostRedisplay ();
