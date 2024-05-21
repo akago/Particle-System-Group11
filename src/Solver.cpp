@@ -18,7 +18,7 @@ void UpdateForces(std::vector<Particle*> pVector, std::vector<Force*> fVector) {
 void ParticleDeriv(std::vector<Particle*> pVector, std::vector<Force*> fVector, std::vector<Constraint*> cVector, double* dst) {
 	UpdateForces(pVector, fVector);
 	ApplyConstraintForce(pVector, cVector);
-	
+
 	for (auto p : pVector) {
 		*(dst++) = p->m_Velocity[0];
 		*(dst++) = p->m_Velocity[1];
@@ -132,3 +132,4 @@ void Runge_Kutta_4(std::vector<Particle*> pVector, std::vector<Force*> fVector, 
 	free(k3);
 	free(k4);
 }
+
