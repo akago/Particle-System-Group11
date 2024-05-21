@@ -14,9 +14,10 @@ class ClothParticleSystem : public ParticleSystem {
 public:
     ClothParticleSystem(double posX, double posY, int width, int height, double dist, double mass, double structural_ks, double structural_kd, double flexion_ks, double flexion_kd, double shear_ks, double shear_kd, double deformation_rate);
     ~ClothParticleSystem() override;
-    void fixTopCorners();
-    void fixTopCornersToLine();
-    void fixTopRowToLine();
+    void fixPoint(int x, int y);
+    void fixPointToHorizontalLine(int x, int y);
+    void fixPointToVerticalLine(int x, int y);
+    void fixPointToLine(int x, int y, double angle);
 
     void simulationStep() override;
 private:

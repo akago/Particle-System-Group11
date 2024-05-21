@@ -91,7 +91,9 @@ ParticleSystem* cloth1() {
 
 	ClothParticleSystem* system = new ClothParticleSystem(posX, posY, width, height, dist, mass ,structural_ks, structural_kd, flexion_ks, flexion_kd, shear_ks, shear_kd, deformation_rate);
 
-	system->fixTopCornersToLine();
+	system->fixPoint(0,0);
+	system->fixPoint(9,0);
+	system->fixPoint(5,0);
 
 	system->setIntegrationHook(RungeKutta);
 	system->setDt(0.01);

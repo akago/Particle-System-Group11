@@ -1,6 +1,8 @@
 #include "ClothParticleSystem.h"
 #include <cmath>
 
+#define PI 3.1415926535897932384626433832795
+
 int ClothParticleSystem::index(int x, int y)
 {
     return y * width + x;
@@ -73,42 +75,39 @@ ClothParticleSystem::ClothParticleSystem(double posX, double posY, int width, in
             forces.push_back(new SpringForce(particles[index(x, y + 1)], particles[index(x + 1, y)], dist * TWOSQUAREROOT, shear_ks, shear_kd));
         }
     }
-}
 
-void ClothParticleSystem::fixTopCorners()
-{
     Constraint::GlobalJ = new GlobalMatrix(0, particles.size() * 2);
     Constraint::GlobalJdot = new GlobalMatrix(0, particles.size() * 2);
     Constraint::global_cons_num = 0;
     Constraint::kd = 0.0;
     Constraint::ks = 0.0;
-
-    // constraints.push_back(new CircularWireConstraint(index(0,0), particles[index(0,0)], pos(0,0)+Vec2f(0,0.05), 0.05));
-    // constraints.push_back(new CircularWireConstraint(index(width-1,0), particles[index(width-1,0)], pos(width-1,0)+Vec2f(0,0.05), 0.05));
-
-    constraints.push_back(new CircularWireConstraint(index(0, 0), particles[index(0, 0)], pos(0, 0), 0.0));
-    constraints.push_back(new CircularWireConstraint(index(width - 1, 0), particles[index(width - 1, 0)], pos(width - 1, 0), 0.0));
-
-    isConstrained[index(0, 0)] = 1;
-    isConstrained[index(width - 1, 0)] = 1;
 }
 
-void ClothParticleSystem::fixTopCornersToLine() 
+void ClothParticleSystem::fixPoint(int x, int y)
 {
-    Constraint::GlobalJ = new GlobalMatrix(0, particles.size() * 2);
-    Constraint::GlobalJdot = new GlobalMatrix(0, particles.size() * 2);
-    Constraint::global_cons_num = 0;
-    Constraint::kd = 0.001;
-    Constraint::ks = 0.002;
-
     // constraints.push_back(new CircularWireConstraint(index(0,0), particles[index(0,0)], pos(0,0)+Vec2f(0,0.05), 0.05));
     // constraints.push_back(new CircularWireConstraint(index(width-1,0), particles[index(width-1,0)], pos(width-1,0)+Vec2f(0,0.05), 0.05));
 
-    constraints.push_back(new LineWireConstraint(index(0, 0), particles[index(0, 0)], 0, 1, pos(0,0)[1]));
-    constraints.push_back(new LineWireConstraint(index(width - 1, 0), particles[index(width - 1, 0)], 0, 1, pos(width - 1,0)[1]));
+    constraints.push_back(new CircularWireConstraint(index(x, y), particles[index(x, y)], pos(x, y), 0.0));
+    isConstrained[index(x, y)] = 1;
+}
 
-    isConstrained[index(0, 0)] = 1;
-    isConstrained[index(width - 1, 0)] = 1;
+void ClothParticleSystem::fixPointToHorizontalLine(int x, int y) 
+{
+    constraints.push_back(new LineWireConstraint(index(x, y), particles[index(x, y)], 0,1,pos(x,y)[1]));
+    isConstrained[index(x, y)] = 1;
+}
+
+void ClothParticleSystem::fixPointToVerticalLine(int x, int y) 
+{
+    constraints.push_back(new LineWireConstraint(index(x, y), particles[index(x, y)], 1,0,pos(x,y)[0]));
+    isConstrained[index(x, y)] = 1;
+}
+
+void ClothParticleSystem::fixPointToLine(int x, int y, double angle) 
+{
+    constraints.push_back(new LineWireConstraint(index(x, y), particles[index(x, y)], tan(angle), 0, tan(angle)*pos(x,y)[0]-pos(x,y)[1]));
+    isConstrained[index(x, y)] = 1;
 }
 
 
