@@ -1,6 +1,8 @@
 // ParticleToy.cpp : Defines the entry point for the console application.
 //
 
+#include "ParticleSystem.h"
+#include "SampleSystems.h"
 #include "Particle.h"
 #include "Force.h"
 #include "imageio.h"
@@ -15,18 +17,6 @@
 #include <iostream>
 #include <limits>
 
-/* macros */
-enum SceneSelector
-{
-	Scene1,
-	Scene2,
-	SceneNumber,
-};
-
-/* external definitions (from solver) */
-
-IntegrationFunctionHook simulation_step = nullptr;
-
 /* global variables */
 
 static int N;
@@ -34,10 +24,6 @@ static float dt, d;
 static int dsim;
 static int dump_frames;
 static int frame_number;
-static SceneSelector scene_id;
-
-// static Particle *pList;
-static std::vector<Particle*> pVector;
 
 static int win_id;
 static int win_x, win_y;
@@ -47,40 +33,21 @@ static int mouse_shiftclick[3];
 static int omx, omy, mx, my;
 static int hmx, hmy;
 
-static std::vector<Force*> fVector;
-static std::vector<Constraint*> cVector;
+static ParticleSystem* particleSystem;
 
 static Particle *mouseParticle;
 static SpringForce *mouseSpringForce;
 
-/*
-----------------------------------------------------------------------
-Set hook function -- plugable integration scheme
-Euler: Euler step
-Midpoint: Midpoint step
-RungeKutta: RungeKutta-4 step
-----------------------------------------------------------------------
-*/
 
-void setIntegrationHook(IntegrationType t) {
-	switch (t)
-	{
-	case Euler:
-		simulation_step = Euler_step;
-		break;
-	case Midpoint:
-		simulation_step = Midpoint_step;
-		break;
-	case RungeKutta:
-		simulation_step = Runge_Kutta_4;
-		break;
-	default:
-		simulation_step = Midpoint_step; //default approach
-		break;
-	}
-}
+enum SceneSelector
+{
+	Scene1,
+	Scene2,
+	Scene3,
+	Cloth1,
+};
 
-
+static SceneSelector scene_id;
 /*
 ----------------------------------------------------------------------
 free/clear/allocate simulation data
@@ -89,115 +56,34 @@ free/clear/allocate simulation data
 
 static void free_data(void)
 {
-	pVector.clear();
-	fVector.clear();
-	cVector.clear();
+	delete particleSystem;
 	delete mouseParticle;
 	delete mouseSpringForce;
 	delete Constraint::GlobalJ;
 	delete Constraint::GlobalJdot;
 }
 
-static void clear_data(void)
-{
-	int ii, size = pVector.size();
-
-	for (ii = 0; ii < size; ii++) {
-		pVector[ii]->reset();
-	}
-}
-
-/*
-	Circle, Rod, Linear Spring
-*/
-
-static void situation1(void) {
-	const double dist = 0.2;
-	const Vec2f center(0.0, 0.0);
-	const Vec2f offset(dist, 0.0);
-
-	// Set integration scheme.
-	setIntegrationHook(Midpoint);
-
-	// Create three particles, attach them to each other, then add a
-	// circular wire constraint to the first.
-
-	pVector.push_back(new Particle(center + offset));
-	pVector.push_back(new Particle(center + offset + offset));
-	pVector.push_back(new Particle(center + offset + offset + offset));
-
-	fVector.push_back(new GravityForce(pVector));
-	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.1, 0.15));
-
-	// Create Global Constraint Jacobian Matrix
-	Constraint::GlobalJ = new GlobalMatrix(0, pVector.size() * 2);
-	Constraint::GlobalJdot = new GlobalMatrix(0, pVector.size() * 2);
-	Constraint::global_cons_num = 0;
-	Constraint::kd = 0.2;
-	Constraint::ks = 0.3;
-
-	cVector.push_back(new CircularWireConstraint(0, pVector[0], center, dist));
-	cVector.push_back(new RodConstraint(1, 2, pVector[1], pVector[2], dist));
-
-	// Mouse particle
-	mouseParticle = new Particle(center);
-}
-
-
-/*
-	Angular string
-*/
-static void situation2(void) {
-	const double dist = 0.2;
-	const Vec2f center(0.0, 0.0);
-	const Vec2f offset(dist, 0.0);
-	double alpha = degreesToRadians(120); // degrees
-
-	// Set integration scheme.
-	setIntegrationHook(Euler);
-
-	// Create three particles, attach them to each other
-
-	pVector.push_back(new Particle(center + offset));
-	pVector.push_back(new Particle(center + offset + offset));
-	// pVector.push_back(new Particle(center + offset + offset + offset));
-	// pVector.push_back(new Particle(Vec2f(center[0] + dist + dist, center[0] - dist)));
-	pVector.push_back(new Particle(Vec2f(center[0] + dist + dist + dist / 2, center[0] - sqrt(3) / 2 * dist)));
-
-	fVector.push_back(new GravityForce(pVector));
-	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.07, 0.15));
-	fVector.push_back(new SpringForce(pVector[1], pVector[2], dist, 0.1, 0.15));
-	fVector.push_back(new AngularSpring(pVector[0], pVector[1], pVector[2], alpha, 0.05, 0.2));
-
-
-	// Create Global Constraint Jacobian Matrix
-	Constraint::GlobalJ = new GlobalMatrix(0, pVector.size() * 2);
-	Constraint::GlobalJdot = new GlobalMatrix(0, pVector.size() * 2);
-	Constraint::global_cons_num = 0;
-	Constraint::kd = 0.2;
-	Constraint::ks = 0.3;
-
-	cVector.push_back(new CircularWireConstraint(0, pVector[0], center, dist));
-
-	// Mouse particle
-	mouseParticle = new Particle(center);
-}
-
 static void init_system(void)
 {
-	switch (scene_id)
+	switch(scene_id)
 	{
-	case Scene1:
-		situation1();
-		break;
-	case Scene2:
-		situation2();
-		break;
-	default:
-		situation1();
-		break;
+		case Scene1:
+			particleSystem = system1();
+			break;
+		case Scene2:
+			particleSystem = system2();
+			break;
+		case Scene3:
+			particleSystem = system3();
+			break;
+		case Cloth1:
+			particleSystem = cloth1();
+			break;
+		default:
+			particleSystem = system1();
+			break;
 	}
-
+	particleSystem->reset();
 }
 
 /*
@@ -242,33 +128,6 @@ static void post_display(void)
 	glutSwapBuffers();
 }
 
-static void draw_particles(void)
-{
-	int size = pVector.size();
-
-	for (int ii = 0; ii < size; ii++)
-	{
-		pVector[ii]->draw();
-	}
-}
-
-static void draw_forces(void)
-{
-	// change this to iteration over full set
-	for (auto force : fVector) {
-		force->draw();
-	}
-
-}
-
-static void draw_constraints(void)
-{
-	// change this to iteration over full set
-	for (auto constraint : cVector) {
-		constraint->draw();
-	}
-}
-
 /*
 ----------------------------------------------------------------------
 relates mouse movements to particle toy construction
@@ -307,19 +166,6 @@ static void get_from_UI()
 	omy = my;
 }
 
-static void remap_GUI()
-{
-	int ii, size = pVector.size();
-	for (ii = 0; ii < size; ii++)
-	{
-		//pVector[ii]->m_Position[0] = pVector[ii]->m_ConstructPos[0];
-		//pVector[ii]->m_Position[1] = pVector[ii]->m_ConstructPos[1];
-		//pVector[ii]->clearForce();
-
-		pVector[ii]->reset();
-	}
-}
-
 /*
 ----------------------------------------------------------------------
 GLUT callback routines
@@ -332,7 +178,7 @@ static void key_func(unsigned char key, int x, int y)
 	{
 	case 'c':
 	case 'C':
-		clear_data();
+		particleSystem->reset();
 		break;
 
 	case 'd':
@@ -347,10 +193,10 @@ static void key_func(unsigned char key, int x, int y)
 		break;
 		case 's':
 		case 'S':
-			free_data();
-			dsim = 0;
-			scene_id = static_cast<SceneSelector>((scene_id + 1) % SceneNumber);
-			init_system();
+			// free_data();
+			// dsim = 0;
+			// scene_id = static_cast<SceneSelector>((scene_id + 1) % SceneNumber);
+			// init_system();
 			break;
 	case ' ':
 		dsim = !dsim;
@@ -387,36 +233,36 @@ static void reshape_func(int width, int height)
 static void idle_func(void)
 {
 	if (dsim) {
-		if (mouse_down[0]) {
-			mouseParticle->m_Position[0] = (2.0*mx / win_x) - 1;
-			mouseParticle->m_Position[1] = -(2.0*my / win_y) + 1;
+		// if (mouse_down[0]) {
+		// 	mouseParticle->m_Position[0] = (2.0*mx / win_x) - 1;
+		// 	mouseParticle->m_Position[1] = -(2.0*my / win_y) + 1;
 
-			Particle *closestParticle;
-			float closestDistanceSquared = std::numeric_limits<float>::max();
+		// 	Particle *closestParticle;
+		// 	float closestDistanceSquared = std::numeric_limits<float>::max();
 
-			for (auto p : pVector) {
-				float dx = (mouseParticle->m_Position[0] - p->m_Position[0]);
-				float dy = (mouseParticle->m_Position[1] - p->m_Position[1]);
-				float distanceSquared = dx * dx + dy * dy;
-				if (distanceSquared < closestDistanceSquared) {
-					closestParticle = p;
-					closestDistanceSquared = distanceSquared;
-				}
-			}
-			mouseSpringForce = new SpringForce(mouseParticle, closestParticle, 0, 0.05, 0.2);
+		// 	for (auto p : pVector) {
+		// 		float dx = (mouseParticle->m_Position[0] - p->m_Position[0]);
+		// 		float dy = (mouseParticle->m_Position[1] - p->m_Position[1]);
+		// 		float distanceSquared = dx * dx + dy * dy;
+		// 		if (distanceSquared < closestDistanceSquared) {
+		// 			closestParticle = p;
+		// 			closestDistanceSquared = distanceSquared;
+		// 		}
+		// 	}
+		// 	mouseSpringForce = new SpringForce(mouseParticle, closestParticle, 0, 0.05, 0.2);
 
-			fVector.push_back(mouseSpringForce);
-			simulation_step(pVector, fVector, cVector, dt);
-			fVector.pop_back();
-			delete mouseSpringForce;
-		}
-		else {
-			simulation_step(pVector, fVector, cVector, dt);
-		}
+		// 	fVector.push_back(mouseSpringForce);
+		// 	simulation_step(pVector, fVector, cVector, dt);
+		// 	fVector.pop_back();
+		// 	delete mouseSpringForce;
+		// }
+		// else {
+		// 	simulation_step(pVector, fVector, cVector, dt);
+		// }
+		particleSystem->simulationStep();
 	}
 	else {
 		get_from_UI();
-		remap_GUI();
 	}
 
 	glutSetWindow(win_id);
@@ -427,9 +273,9 @@ static void display_func(void)
 {
 	pre_display();
 
-	draw_forces();
-	draw_constraints();
-	draw_particles();
+	particleSystem->drawForces();
+	particleSystem->drawConstraints();
+	particleSystem->drawParticles();
 
 	post_display();
 }
@@ -441,14 +287,35 @@ static void display_func(void)
 */
 void integrationMenuAdapter(int option) {
 	IntegrationType type = static_cast<IntegrationType>(option);
-	setIntegrationHook(type);
+	particleSystem->setIntegrationHook(type);
+}
+
+void sceneMenuAdapter(int option) {
+	scene_id = static_cast<SceneSelector>(option);
+	free_data();
+	init_system();
+}
+
+void menuHandler(int option) {
+
 }
 
 void createMenu() {
-	int menuID = glutCreateMenu(integrationMenuAdapter);
+	int integrationMenu = glutCreateMenu(integrationMenuAdapter);
 	glutAddMenuEntry("Euler Integration", Euler);
 	glutAddMenuEntry("Midpoint Integration", Midpoint);
 	glutAddMenuEntry("Runge-Kutta4 Integration", RungeKutta);
+
+	int sceneMenu = glutCreateMenu(sceneMenuAdapter);
+	glutAddMenuEntry("Scene 1", Scene1);
+	glutAddMenuEntry("Scene 2", Scene2);
+	glutAddMenuEntry("Scene 3", Scene3);
+	glutAddMenuEntry("Cloth", Cloth1);
+
+	int mainMenu = glutCreateMenu(menuHandler);
+	glutAddSubMenu("integration", integrationMenu);
+	glutAddSubMenu("scene", sceneMenu);
+
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
@@ -517,7 +384,6 @@ int main(int argc, char ** argv)
 	dsim = 0;
 	dump_frames = 0;
 	frame_number = 0;
-	scene_id = Scene1;
 
 	init_system();
 

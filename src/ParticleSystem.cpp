@@ -86,7 +86,7 @@ void ParticleSystem::drawConstraints ( )
 	}
 }
 
-void ParticleSystem::clear_data() {
+void ParticleSystem::reset() {
     for (auto particle : particles) {
 		particle->reset();
 	}

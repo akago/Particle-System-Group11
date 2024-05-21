@@ -3,7 +3,8 @@
 #include "ParticleSystem.h"
 #include "ClothParticleSystem.h"
 
-ParticleSystem* sample1();
-ParticleSystem* sample2();
+ParticleSystem* system1();
+ParticleSystem* system2();
+ParticleSystem* system3();
 
 ParticleSystem* cloth1();

@@ -31,7 +31,7 @@ class ParticleSystem {
         void drawForces();
         void drawConstraints();
 
-        void clear_data();
+        void reset();
     protected:
         float dt = 0.1f;
 

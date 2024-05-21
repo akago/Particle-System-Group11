@@ -2,17 +2,20 @@
 #include "ParticleSystem.h"
 #include "ClothParticleSystem.h"
 
-ParticleSystem* sample1() {
+/*
+	Circle, Rod, Linear Spring
+*/
+ParticleSystem* system1() {
     ParticleSystem* system = new ParticleSystem();
 
-    system->setDt(0.1f);
+    system->setDt(0.01f);
 
     const double dist = 0.2;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
 	// Set integration scheme.
-	system->setIntegrationHook(RungeKutta);
+	system->setIntegrationHook(Midpoint);
 
 	// Create three particles, attach them to each other, then add a
 	// circular wire constraint to the first.
@@ -25,22 +28,26 @@ ParticleSystem* sample1() {
 	system->addParticle(particle1);
 	system->addParticle(particle2);
 	
-	system->addForce(new GravityForce(system->getParticles(), 0.001));
-	system->addForce(new SpringForce(particle0, particle1, dist, 0.005, 0.001));
+	system->addForce(new GravityForce(system->getParticles(), 0.05));
+	system->addForce(new SpringForce(particle0, particle1, dist, 0.1, 0.15));
 
 	// Create Global Constraint Jacobian Matrix
 	Constraint::GlobalJ = new GlobalMatrix(0,system->particleCount()*2);
 	Constraint::GlobalJdot = new GlobalMatrix(0, system->particleCount() * 2);
 	Constraint::global_cons_num = 0;
-	Constraint::kd = 0.001;
-	Constraint::ks = 0.002;
+	Constraint::kd = 0.2;
+	Constraint::ks = 0.3;
 
 	system->addConstraint(new CircularWireConstraint(0, particle0, center, dist));
+	system->addConstraint(new RodConstraint(1, 2, particle1, particle2, dist));
 
     return system;
 }
 
-ParticleSystem* sample2() {
+/*
+	Line constraint
+*/
+ParticleSystem* system2() {
     ParticleSystem* system = new ParticleSystem();
 
     system->setDt(0.1f);
@@ -66,6 +73,48 @@ ParticleSystem* sample2() {
 	system->addConstraint(new LineWireConstraint(0, particle0, 1, -1, 0));
 
     return system;
+}
+
+/*
+	Angular string
+*/
+ParticleSystem* system3() {
+	ParticleSystem* system = new ParticleSystem();
+
+	const double dist = 0.2;
+	const Vec2f center(0.0, 0.0);
+	const Vec2f offset(dist, 0.0);
+	double alpha = degreesToRadians(120); // degrees
+
+	// Set integration scheme.
+	system->setIntegrationHook(Euler);
+
+	// Create three particles, attach them to each other
+
+	Particle* particle0 = new Particle(center + offset);
+    Particle* particle1 = new Particle(center + offset + offset);
+    Particle* particle2 = new Particle(Vec2f(center[0] + dist + dist + dist / 2, center[0] - sqrt(3) / 2 * dist));
+	
+	system->addParticle(particle0);
+	system->addParticle(particle1);
+	system->addParticle(particle2);
+
+	system->addForce(new GravityForce(system->getParticles(), 0.001));
+	system->addForce(new SpringForce(particle0, particle1, dist, 0.07, 0.15));
+	system->addForce(new SpringForce(particle1, particle2, dist, 0.1, 0.15));
+	system->addForce(new AngularSpring(particle0, particle1, particle2, alpha, 0.05, 0.2));
+
+
+	// Create Global Constraint Jacobian Matrix
+	Constraint::GlobalJ = new GlobalMatrix(0,system->particleCount()*2);
+	Constraint::GlobalJdot = new GlobalMatrix(0, system->particleCount() * 2);
+	Constraint::global_cons_num = 0;
+	Constraint::kd = 0.2;
+	Constraint::ks = 0.3;
+
+	system->addConstraint(new CircularWireConstraint(0, particle0, center, dist));
+
+	return system;
 }
 
 ParticleSystem* cloth1() {
