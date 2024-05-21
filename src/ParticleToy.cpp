@@ -151,7 +151,7 @@ static void situation2(void) {
 	const double dist = 0.2;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
-	double alpha = degreesToRadians(180); // degrees
+	double alpha = degreesToRadians(120); // degrees
 
 	// Set integration scheme.
 	setIntegrationHook(Euler);
@@ -160,6 +160,7 @@ static void situation2(void) {
 
 	pVector.push_back(new Particle(center + offset));
 	pVector.push_back(new Particle(center + offset + offset));
+	// pVector.push_back(new Particle(center + offset + offset + offset));
 	// pVector.push_back(new Particle(Vec2f(center[0] + dist + dist, center[0] - dist)));
 	pVector.push_back(new Particle(Vec2f(center[0] + dist + dist + dist / 2, center[0] - sqrt(3) / 2 * dist)));
 
