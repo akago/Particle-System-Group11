@@ -27,25 +27,22 @@ double calculateError(int n, double* x, double* b, double* W) {
 	double* temp = (double*)malloc(n * sizeof(double));
 	double* res = (double*)malloc(Constraint::global_cons_num * sizeof(double));
 	Constraint::GlobalJ->matTransVecMult(x, temp);
-	vecElewiseProd(n,temp,W);
+	vecElewiseProd(n, temp, W);
 	Constraint::GlobalJ->matVecMult(temp, res);
 
-	//printf("ï¿½ï¿½calculateErrorï¿½ï¿½==========START===============\n");
-	//printf("JWJtx is: ");
-	//printVector(Constraint::global_cons_num, res);
-	//printf("b is: ");
-	//printVector(Constraint::global_cons_num, b);
-	//printf("ï¿½ï¿½calculateErrorï¿½ï¿½==========END===============\n");
-	
+	/*printf("¡¾calculateError¡¿==========START===============\n");
+	printf("JWJtx is: ");
+	printVector(Constraint::global_cons_num, res);
+	printf("b is: ");
+	printVector(Constraint::global_cons_num, b);
+	printf("¡¾calculateError¡¿==========END===============\n");*/
+
 
 	free(temp);
 	free(res);
 }
 
 void ApplyConstraintForce(std::vector<Particle*> pVector, std::vector<Constraint*> cVector) {
-	if(Constraint::global_cons_num == 0) {
-		return;
-	}
 	double epsilon = 0.000000001;
 	int steps = 0;
 	int dimension = pVector.size() * 2;
@@ -55,17 +52,17 @@ void ApplyConstraintForce(std::vector<Particle*> pVector, std::vector<Constraint
 	double* W = (double*)malloc(dimension * sizeof(double)); // mass diagnoal matrix
 	double* qdot = (double*)malloc(dimension * sizeof(double)); // global velocity vector
 
-	double* C = (double*)malloc(Constraint::global_cons_num * sizeof(double)); 
+	double* C = (double*)malloc(Constraint::global_cons_num * sizeof(double));
 	double* Cdot = (double*)malloc(Constraint::global_cons_num * sizeof(double));
 	double* b = (double*)malloc(Constraint::global_cons_num * sizeof(double));
 	double* x = (double*)malloc(Constraint::global_cons_num * sizeof(double));
-	
-	
 
-	//printf("ï¿½ï¿½ApplyConstraintForceï¿½ï¿½===============STARTING===================\n");
+
+
+	//printf("¡¾ApplyConstraintForce¡¿===============STARTING===================\n");
 
 	GetGlobalVectors(pVector, q, Q, W, qdot);
-	
+
 	//printf("Force vector: ");
 	//printVector(dimension, Q);
 
@@ -77,21 +74,21 @@ void ApplyConstraintForce(std::vector<Particle*> pVector, std::vector<Constraint
 	Constraint::GlobalJ->matVecMult(Q, x);								// JWQ
 	vecTimesScalar(Constraint::global_cons_num, C, Constraint::ks);		// ks*C
 	vecTimesScalar(Constraint::global_cons_num, Cdot, Constraint::kd);  // kd*Cdot
-    
+
 	// Sum up
 	vecAddEqual(Constraint::global_cons_num, b, x);
 	vecAddEqual(Constraint::global_cons_num, b, C);
 	vecAddEqual(Constraint::global_cons_num, b, Cdot);
 	vecTimesScalar(Constraint::global_cons_num, b, -1.0);
-	
+
 	//printf("C vector: ");
 	//printVector(Constraint::global_cons_num, C);
 	//printf("Cdot vector: ");
 	//printVector(Constraint::global_cons_num, Cdot);
 
 	Constraint_ConjGrad(Constraint::global_cons_num, dimension, Constraint::GlobalJ, x, b, W, epsilon, steps);
-	calculateError(dimension, x, b, W);
-	
+	//calculateError(dimension, x, b, W);
+
 	Constraint::GlobalJ->matTransVecMult(x, Q);
 	//printf("Lambda:");
 	//printVector(Constraint::global_cons_num, x);
@@ -102,7 +99,7 @@ void ApplyConstraintForce(std::vector<Particle*> pVector, std::vector<Constraint
 		particle->m_Force[0] += *(constraint_forces++);
 		particle->m_Force[1] += *(constraint_forces++);
 	}
-	//printf("ï¿½ï¿½ApplyConstraintForceï¿½ï¿½===============END===================\n");
+	//printf("¡¾ApplyConstraintForce¡¿===============END===================\n");
 	free(q);
 	free(Q);
 	free(W);
