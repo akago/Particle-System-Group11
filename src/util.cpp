@@ -6,3 +6,4 @@ void printVector(int n, double* num) {
 	}
 	printf("\n");
 }
+

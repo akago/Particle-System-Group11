@@ -44,10 +44,11 @@ enum SceneSelector
 	Scene1,
 	Scene2,
 	Scene3,
+	Scene4,
 	Cloth1,
 };
 
-static SceneSelector scene_id;
+static SceneSelector scene_id = Scene4;
 /*
 ----------------------------------------------------------------------
 free/clear/allocate simulation data
@@ -75,6 +76,9 @@ static void init_system(void)
 			break;
 		case Scene3:
 			particleSystem = system3();
+			break;
+		case Scene4:
+			particleSystem = system4();
 			break;
 		case Cloth1:
 			particleSystem = cloth1();
@@ -191,13 +195,12 @@ static void key_func(unsigned char key, int x, int y)
 		free_data();
 		exit(0);
 		break;
-		case 's':
-		case 'S':
-			// free_data();
-			// dsim = 0;
-			// scene_id = static_cast<SceneSelector>((scene_id + 1) % SceneNumber);
-			// init_system();
-			break;
+	case 's':
+	case 'S':
+		if(!dsim) {
+			particleSystem->simulationStep();
+		}
+		break;
 	case ' ':
 		dsim = !dsim;
 		break;
@@ -272,8 +275,9 @@ static void display_func(void)
 {
 	pre_display();
 
-	particleSystem->drawForces();
+	particleSystem->drawWalls();
 	particleSystem->drawConstraints();
+	particleSystem->drawForces();
 	particleSystem->drawParticles();
 
 	post_display();
@@ -309,6 +313,7 @@ void createMenu() {
 	glutAddMenuEntry("Scene 1", Scene1);
 	glutAddMenuEntry("Scene 2", Scene2);
 	glutAddMenuEntry("Scene 3", Scene3);
+	glutAddMenuEntry("Scene 4", Scene4);
 	glutAddMenuEntry("Cloth", Cloth1);
 
 	int mainMenu = glutCreateMenu(menuHandler);
@@ -364,14 +369,12 @@ int main(int argc, char ** argv)
 
 	if (argc == 1) {
 		N = 64;
-		dt = 0.01f;
 		d = 5.f;
-		fprintf(stderr, "Using defaults : N=%d dt=%g d=%g\n",
+		fprintf(stderr, "Using defaults : N=%d d=%g\n",
 			N, dt, d);
 	}
 	else {
 		N = atoi(argv[1]);
-		dt = atof(argv[2]);
 		d = atof(argv[3]);
 	}
 

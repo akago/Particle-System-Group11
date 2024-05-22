@@ -117,6 +117,35 @@ ParticleSystem* system3() {
 	return system;
 }
 
+
+ParticleSystem* system4() {
+	ParticleSystem* system = new ParticleSystem();
+
+	const Vec2f center(0.0, 0.0);
+
+	// Set integration scheme.
+	system->setIntegrationHook(Euler);
+
+	// Create three particles, attach them to each other
+
+	Particle* particle0 = new Particle(center);
+	
+	system->addParticle(particle0);
+
+	system->addForce(new GravityForce(system->getParticles(), 0.05));
+
+	system->addWall(new Wall(Vec2f(0,-0.5), 0.1, 0.4));
+
+	// Create Global Constraint Jacobian Matrix
+	Constraint::GlobalJ = new GlobalMatrix(0,system->particleCount()*2);
+	Constraint::GlobalJdot = new GlobalMatrix(0, system->particleCount() * 2);
+	Constraint::global_cons_num = 0;
+	Constraint::kd = 0.2;
+	Constraint::ks = 0.3;
+
+	return system;
+}
+
 ParticleSystem* cloth1() {
 	double posX = -0.5;
     double posY = 0.5;

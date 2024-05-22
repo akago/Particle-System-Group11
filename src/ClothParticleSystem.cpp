@@ -22,7 +22,7 @@ ClothParticleSystem::ClothParticleSystem(double posX, double posY, int width, in
     {
         for (int x = 0; x < width; x++)
         {
-            particles.push_back(new Particle(pos(x, y), mass));
+            addParticle(new Particle(pos(x, y), mass));
             isConstrained.push_back(0);
         }
     }
@@ -34,7 +34,7 @@ ClothParticleSystem::ClothParticleSystem(double posX, double posY, int width, in
         for (int x = 0; x < width - 1; x++)
         {
             SpringForce* force = new SpringForce(particles[index(x, y)], particles[index(x + 1, y)], dist, structural_ks, structural_kd);
-            forces.push_back(force);
+            addForce(force);
         }
     }
 
@@ -43,7 +43,7 @@ ClothParticleSystem::ClothParticleSystem(double posX, double posY, int width, in
         for (int x = 0; x < width; x++)
         {
             SpringForce* force = new SpringForce(particles[index(x, y)], particles[index(x, y + 1)], dist, structural_ks, structural_kd);
-            forces.push_back(force);
+            addForce(force);
         }
     }
 
@@ -53,7 +53,7 @@ ClothParticleSystem::ClothParticleSystem(double posX, double posY, int width, in
         for (int x = 0; x < width - 2; x++)
         {
             SpringForce* force = new SpringForce(particles[index(x, y)], particles[index(x + 2, y)], dist * 2, flexion_ks, flexion_kd);
-            forces.push_back(force);
+            addForce(force);
         }
     }
 
@@ -62,7 +62,7 @@ ClothParticleSystem::ClothParticleSystem(double posX, double posY, int width, in
         for (int x = 0; x < width; x++)
         {
             SpringForce* force = new SpringForce(particles[index(x, y)], particles[index(x, y + 2)], dist * 2, flexion_ks, flexion_kd);
-            forces.push_back(force);
+            addForce(force);
         }
     }
 
@@ -71,8 +71,8 @@ ClothParticleSystem::ClothParticleSystem(double posX, double posY, int width, in
     {
         for (int x = 0; x < width - 1; x++)
         {
-            forces.push_back(new SpringForce(particles[index(x, y)], particles[index(x + 1, y + 1)], dist * TWOSQUAREROOT, shear_ks, shear_kd));
-            forces.push_back(new SpringForce(particles[index(x, y + 1)], particles[index(x + 1, y)], dist * TWOSQUAREROOT, shear_ks, shear_kd));
+            addForce(new SpringForce(particles[index(x, y)], particles[index(x + 1, y + 1)], dist * TWOSQUAREROOT, shear_ks, shear_kd));
+            addForce(new SpringForce(particles[index(x, y + 1)], particles[index(x + 1, y)], dist * TWOSQUAREROOT, shear_ks, shear_kd));
         }
     }
 
@@ -88,25 +88,25 @@ void ClothParticleSystem::fixPoint(int x, int y)
     // constraints.push_back(new CircularWireConstraint(index(0,0), particles[index(0,0)], pos(0,0)+Vec2f(0,0.05), 0.05));
     // constraints.push_back(new CircularWireConstraint(index(width-1,0), particles[index(width-1,0)], pos(width-1,0)+Vec2f(0,0.05), 0.05));
 
-    constraints.push_back(new CircularWireConstraint(index(x, y), particles[index(x, y)], pos(x, y), 0.0));
+    addConstraint(new CircularWireConstraint(index(x, y), particles[index(x, y)], pos(x, y), 0.0));
     isConstrained[index(x, y)] = 1;
 }
 
 void ClothParticleSystem::fixPointToHorizontalLine(int x, int y) 
 {
-    constraints.push_back(new LineWireConstraint(index(x, y), particles[index(x, y)], 0,1,pos(x,y)[1]));
+    addConstraint(new LineWireConstraint(index(x, y), particles[index(x, y)], 0,1,pos(x,y)[1]));
     isConstrained[index(x, y)] = 1;
 }
 
 void ClothParticleSystem::fixPointToVerticalLine(int x, int y) 
 {
-    constraints.push_back(new LineWireConstraint(index(x, y), particles[index(x, y)], 1,0,pos(x,y)[0]));
+    addConstraint(new LineWireConstraint(index(x, y), particles[index(x, y)], 1,0,pos(x,y)[0]));
     isConstrained[index(x, y)] = 1;
 }
 
 void ClothParticleSystem::fixPointToLine(int x, int y, double angle) 
 {
-    constraints.push_back(new LineWireConstraint(index(x, y), particles[index(x, y)], tan(angle), 0, tan(angle)*pos(x,y)[0]-pos(x,y)[1]));
+    addConstraint(new LineWireConstraint(index(x, y), particles[index(x, y)], tan(angle), 0, tan(angle)*pos(x,y)[0]-pos(x,y)[1]));
     isConstrained[index(x, y)] = 1;
 }
 

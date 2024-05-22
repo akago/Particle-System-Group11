@@ -35,11 +35,21 @@ void ParticleSystem::setDt(float dt) {
 }
 
 void ParticleSystem::simulationStep() {
+	for(int i = 0; i < particles.size(); i++) {
+		previousPositions[i] = particles[i]->m_Position;
+	}
     integrationMethod(particles, forces, constraints, dt);
+	
+	for(int i = 0; i < particles.size(); i++) {
+		for(Wall* wall : walls) {
+			wall->adjustParticle(particles[i], previousPositions[i]);
+		}
+	}
 }
 
 void ParticleSystem::addParticle(Particle* particle) {
     particles.push_back(particle);
+	previousPositions.push_back(Vec2f());
 }
 
 void ParticleSystem::addForce(Force* force) {
@@ -48,6 +58,10 @@ void ParticleSystem::addForce(Force* force) {
 
 void ParticleSystem::addConstraint(Constraint* constraint) {
     constraints.push_back(constraint);
+}
+
+void ParticleSystem::addWall(Wall* wall) {
+	walls.push_back(wall);
 }
 
 void ParticleSystem::removeLastForce() {
@@ -62,6 +76,9 @@ std::vector<Force*>& ParticleSystem::getForces() {
 }
 std::vector<Constraint*>& ParticleSystem::getConstraints() {
     return constraints;
+}
+std::vector<Wall*>& ParticleSystem::getWalls() {
+	return walls;
 }
 
 int ParticleSystem::particleCount() {
@@ -79,8 +96,7 @@ void ParticleSystem::drawForces ( )
 {
 	for (auto force : forces) {
 		force->draw();
-	}
-		
+	}	
 }
 
 void ParticleSystem::drawConstraints ( )
@@ -90,6 +106,14 @@ void ParticleSystem::drawConstraints ( )
 	}
 }
 
+void ParticleSystem::drawWalls ( )
+{
+	for (auto wall : walls) {
+		wall->draw();
+	}		
+}
+
+
 void ParticleSystem::reset() {
     for (auto particle : particles) {
 		particle->reset();
@@ -97,6 +121,7 @@ void ParticleSystem::reset() {
 }
 
 ParticleSystem::~ParticleSystem() {
+	previousPositions.clear();
     particles.clear();
     forces.clear();
     constraints.clear();
