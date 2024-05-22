@@ -44,7 +44,7 @@ double AngularSpring::applyForce() {
 	/*printf("midpoint: (%.2f,%.2f)\n", mid->m_Position[0], mid->m_Position[1]);
 	printf("p1: (%.2f,%.2f)\n", endPoint1->m_Position[0], endPoint1->m_Position[1]);
 	printf("p3: (%.2f,%.2f)\n", endPoint2->m_Position[0], endPoint2->m_Position[1]);
-	printf("¡¾AngularSpring¡¿==================Current distance£º%.8f, Current rest distance: %.8f\n============", d, d0);*/
+	printf("ï¿½ï¿½AngularSpringï¿½ï¿½==================Current distanceï¿½ï¿½%.8f, Current rest distance: %.8f\n============", d, d0);*/
 	F = virtual_force->applyForce() / 2;
 
 	endPoint1->m_Force[0] -= uv[0] * F;

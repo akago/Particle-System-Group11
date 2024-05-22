@@ -10,7 +10,7 @@
 ParticleSystem* system1() {
     ParticleSystem* system = new ParticleSystem();
 
-    system->setDt(0.1f);
+    system->setDt(0.1);
 
     const double dist = 0.2;
 	const Vec2f center(0.0, 0.0);
@@ -52,7 +52,7 @@ ParticleSystem* system1() {
 ParticleSystem* system2() {
     ParticleSystem* system = new ParticleSystem();
 
-    system->setDt(0.1f);
+    system->setDt(0.1);
 
 	const Vec2f center(0.0, 0.0);
 
@@ -69,8 +69,8 @@ ParticleSystem* system2() {
 	Constraint::GlobalJ = new GlobalMatrix(0,system->particleCount()*2);
 	Constraint::GlobalJdot = new GlobalMatrix(0, system->particleCount() * 2);
 	Constraint::global_cons_num = 0;
-	Constraint::kd = 0.001;
-	Constraint::ks = 0.002;
+	Constraint::kd = 0.2;
+	Constraint::ks = 0.3;
 
 	system->addConstraint(new LineWireConstraint(0, particle0, 1, -1, 0));
 
@@ -158,7 +158,7 @@ ParticleSystem* cloth1() {
 
 
 	double ks = 7.0;
-	double kd = 3.0;
+	double kd = 1.0;
 
     double structural_ks = ks;
     double structural_kd = kd;

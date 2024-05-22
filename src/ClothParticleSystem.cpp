@@ -85,8 +85,8 @@ ClothParticleSystem::ClothParticleSystem(double posX, double posY, int width, in
 
 void ClothParticleSystem::fixPoint(int x, int y)
 {
-    // constraints.push_back(new CircularWireConstraint(index(0,0), particles[index(0,0)], pos(0,0)+Vec2f(0,0.05), 0.05));
-    // constraints.push_back(new CircularWireConstraint(index(width-1,0), particles[index(width-1,0)], pos(width-1,0)+Vec2f(0,0.05), 0.05));
+    // using larger r. does not fix to a point but less likely to explode.
+    // constraints.push_back(new CircularWireConstraint(index(x, y), particles[index(x, y)], pos(x, y)+Vec2f(0,0.05), 0.05));
 
     addConstraint(new CircularWireConstraint(index(x, y), particles[index(x, y)], pos(x, y), 0.0));
     isConstrained[index(x, y)] = 1;

@@ -210,6 +210,7 @@ static void key_func(unsigned char key, int x, int y)
 	case 'c':
 	case 'C':
 		particleSystem->reset();
+		dsim = false;
 		break;
 
 	case 'd':
@@ -323,6 +324,7 @@ void integrationMenuAdapter(int option) {
 void sceneMenuAdapter(int option) {
 	scene_id = static_cast<SceneSelector>(option);
 	free_data();
+	dsim = false;
 	init_system();
 }
 
@@ -408,9 +410,11 @@ int main(int argc, char ** argv)
 	}
 
 	printf("\n\nHow to use this application:\n\n");
-	printf("\t Toggle construction/simulation display with the spacebar key\n");
+	printf("\t Play/Pause simulation with space bar\n");
+	printf("\t Reset simulation by pressing the 'c' key\n");
 	printf("\t Dump frames by pressing the 'd' key\n");
 	printf("\t Quit by pressing the 'q' key\n");
+	printf("\t Right clicking opens a menu in which simulation/integration method can be changed\n");
 
 	dsim = 0;
 	dump_frames = 0;
