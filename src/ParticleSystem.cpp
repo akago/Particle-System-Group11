@@ -121,6 +121,7 @@ void ParticleSystem::reset() {
 }
 
 ParticleSystem::~ParticleSystem() {
+	walls.clear();
 	previousPositions.clear();
     particles.clear();
     forces.clear();

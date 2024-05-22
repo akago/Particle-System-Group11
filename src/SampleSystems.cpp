@@ -2,13 +2,15 @@
 #include "ParticleSystem.h"
 #include "ClothParticleSystem.h"
 
+#define PI 3.1415926535897932384626433832795
+
 /*
 	Circle, Rod, Linear Spring
 */
 ParticleSystem* system1() {
     ParticleSystem* system = new ParticleSystem();
 
-    system->setDt(0.01f);
+    system->setDt(0.1f);
 
     const double dist = 0.2;
 	const Vec2f center(0.0, 0.0);
@@ -28,8 +30,8 @@ ParticleSystem* system1() {
 	system->addParticle(particle1);
 	system->addParticle(particle2);
 	
-	system->addForce(new GravityForce(system->getParticles(), 0.05));
-	system->addForce(new SpringForce(particle0, particle1, dist, 0.1, 0.15));
+	system->addForce(new GravityForce(system->getParticles(), 0.01));
+	system->addForce(new SpringForce(particle0, particle1, dist, 0.7, 0.15));
 
 	// Create Global Constraint Jacobian Matrix
 	Constraint::GlobalJ = new GlobalMatrix(0,system->particleCount()*2);
@@ -171,7 +173,73 @@ ParticleSystem* cloth1() {
 
 	system->fixPoint(0,0);
 	system->fixPoint(9,0);
-	system->fixPoint(5,0);
+
+	system->setIntegrationHook(RungeKutta);
+	system->setDt(0.01);
+	system->addForce(new GravityForce(system->getParticles(), 0.05));
+
+	return system;
+}
+
+ParticleSystem* cloth2() {
+	double posX = -0.5;
+    double posY = 0.5;
+    int width = 10;
+    int height = 10;
+    double dist = 0.1;
+    double mass = 1.0;
+
+
+	double ks = 7.0;
+	double kd = 1.0;
+
+    double structural_ks = ks;
+    double structural_kd = kd;
+    double flexion_ks = ks;
+    double flexion_kd = kd;
+	double shear_ks = ks;
+    double shear_kd = kd;
+
+	double deformation_rate = 1.1;
+
+	ClothParticleSystem* system = new ClothParticleSystem(posX, posY, width, height, dist, mass ,structural_ks, structural_kd, flexion_ks, flexion_kd, shear_ks, shear_kd, deformation_rate);
+
+	system->fixPointToHorizontalLine(0,0);
+	system->fixPointToHorizontalLine(9,0);
+
+	system->setIntegrationHook(RungeKutta);
+	system->setDt(0.01);
+	system->addForce(new GravityForce(system->getParticles(), 0.05));
+
+	return system;
+}
+
+ParticleSystem* cloth3() {
+	double posX = -0.5;
+    double posY = 0.5;
+    int width = 10;
+    int height = 10;
+    double dist = 0.1;
+    double mass = 1.0;
+
+
+	double ks = 7.0;
+	double kd = 1.0;
+
+    double structural_ks = ks;
+    double structural_kd = kd;
+    double flexion_ks = ks;
+    double flexion_kd = kd;
+	double shear_ks = ks;
+    double shear_kd = kd;
+
+	double deformation_rate = 1.1;
+
+	ClothParticleSystem* system = new ClothParticleSystem(posX, posY, width, height, dist, mass ,structural_ks, structural_kd, flexion_ks, flexion_kd, shear_ks, shear_kd, deformation_rate);
+
+	system->fixPoint(0,0);
+	
+	system->addWall(new Wall(Vec2f(-0.65, 0), 0.5*PI, 0.1));
 
 	system->setIntegrationHook(RungeKutta);
 	system->setDt(0.01);

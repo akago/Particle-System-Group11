@@ -9,3 +9,5 @@ ParticleSystem* system3();
 ParticleSystem* system4();
 
 ParticleSystem* cloth1();
+ParticleSystem* cloth2();
+ParticleSystem* cloth3();

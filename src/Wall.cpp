@@ -39,8 +39,6 @@ Wall::Wall(Vec2f position, double angle, double r) :
             index += 2;
         }
     }
-
-    printf("normal: %f, %f\n", normal[0], normal[1]);
 }
 
 void Wall::adjustParticle(Particle* particle, Vec2f prevPosition) {
@@ -60,9 +58,9 @@ void Wall::adjustParticle(Particle* particle, Vec2f prevPosition) {
 void Wall::draw()
 {
 	glBegin( GL_LINES );
-    glColor3f(0.0,1.0,0.0);
+    glColor3f(0.0,0.0,1.0);
     glVertex2f( borderIntersection[0], borderIntersection[1] );
-    glColor3f(0.0,1.0,0.0); 
+    glColor3f(0.0,0.0,1.0); 
     glVertex2f( borderIntersection[2], borderIntersection[3] );
     glEnd();
 }

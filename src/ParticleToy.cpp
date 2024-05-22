@@ -38,6 +38,9 @@ static ParticleSystem* particleSystem;
 static Particle *mouseParticle;
 static SpringForce *mouseSpringForce;
 
+static double mouse_kd;
+static double mouse_ks;
+
 
 enum SceneSelector
 {
@@ -46,9 +49,11 @@ enum SceneSelector
 	Scene3,
 	Scene4,
 	Cloth1,
+	Cloth2,
+	Cloth3,
 };
 
-static SceneSelector scene_id = Scene4;
+static SceneSelector scene_id = Scene1;
 /*
 ----------------------------------------------------------------------
 free/clear/allocate simulation data
@@ -70,21 +75,43 @@ static void init_system(void)
 	{
 		case Scene1:
 			particleSystem = system1();
+			mouse_kd = 0.6;
+			mouse_ks = 0.1;
 			break;
 		case Scene2:
 			particleSystem = system2();
+			mouse_kd = 0.6;
+			mouse_ks = 0.1;
 			break;
 		case Scene3:
 			particleSystem = system3();
+			mouse_kd = 0.6;
+			mouse_ks = 0.1;
 			break;
 		case Scene4:
 			particleSystem = system4();
+			mouse_kd = 0.8;
+			mouse_ks = 0.5;
 			break;
 		case Cloth1:
 			particleSystem = cloth1();
+			mouse_kd = 0.8;
+			mouse_ks = 0.5;
+			break;
+		case Cloth2:
+			particleSystem = cloth2();
+			mouse_kd = 0.8;
+			mouse_ks = 0.5;
+			break;
+		case Cloth3:
+			particleSystem = cloth3();
+			mouse_kd = 0.8;
+			mouse_ks = 0.5;
 			break;
 		default:
 			particleSystem = system1();
+			mouse_kd = 0.8;
+			mouse_ks = 0.5;
 			break;
 	}
 	particleSystem->reset();
@@ -252,7 +279,7 @@ static void idle_func(void)
 					closestDistanceSquared = distanceSquared;
 				}
 			}
-			mouseSpringForce = new SpringForce(mouseParticle, closestParticle, 0, 5.0, 2.0);
+			mouseSpringForce = new SpringForce(mouseParticle, closestParticle, 0, mouse_kd, mouse_ks);
 
 			particleSystem->addForce(mouseSpringForce);
 			particleSystem->simulationStep();
@@ -314,7 +341,9 @@ void createMenu() {
 	glutAddMenuEntry("Scene 2", Scene2);
 	glutAddMenuEntry("Scene 3", Scene3);
 	glutAddMenuEntry("Scene 4", Scene4);
-	glutAddMenuEntry("Cloth", Cloth1);
+	glutAddMenuEntry("Cloth 1", Cloth1);
+	glutAddMenuEntry("Cloth 2", Cloth2);
+	glutAddMenuEntry("Cloth 3", Cloth3);
 
 	int mainMenu = glutCreateMenu(menuHandler);
 	glutAddSubMenu("integration", integrationMenu);
